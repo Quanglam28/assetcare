@@ -1,0 +1,40 @@
+{
+  "name": "university-asset-maintenance-backend",
+  "version": "1.0.0",
+  "description": "Hệ thống quản lý tài sản và bảo trì thiết bị trường đại học qua mã QR Code - Backend REST API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node src/seed_demo_data.js",
+    "init-db": "node src/seed_demo_data.js",
+    "test": "node test_phase4_simulation_suite.js"
+  },
+  "keywords": [
+    "asset-management",
+    "maintenance",
+    "qr-code",
+    "university",
+    "express",
+    "mysql"
+  ],
+  "author": "Antigravity Senior Full-Stack Engineer",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.19.0",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.6.2",
+    "helmet": "^8.0.0",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.12.0",
+    "qrcode": "^1.5.4"
+  }
+}

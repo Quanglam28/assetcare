@@ -1,0 +1,87 @@
+const jwt = require('jsonwebtoken');
+const jwtConfig = require('../config/jwt');
+const { UnauthorizedError, ForbiddenError } = require('../utils/appError');
+const userRepository = require('../repositories/userRepository');
+
+/**
+ * Middleware xác thực danh tính qua JWT Bearer Token (Authentication)
+ */
+const authenticate = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedError('Vui lòng đăng nhập để tiếp tục (Thiếu Header Authorization: Bearer <token>)');
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      throw new UnauthorizedError('Token xác thực không hợp lệ');
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, jwtConfig.secret);
+    } catch (jwtErr) {
+      if (jwtErr.name === 'TokenExpiredError') {
+        throw new UnauthorizedError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      }
+      throw new UnauthorizedError('Token xác thực không hợp lệ hoặc đã bị giả mạo.');
+    }
+
+    // Lấy thông tin user mới nhất từ CSDL MySQL
+    const user = await userRepository.findById(decoded.id);
+    if (!user) {
+      throw new UnauthorizedError('Tài khoản người dùng không tồn tại hoặc đã bị xóa khỏi hệ thống.');
+    }
+
+    if (user.status !== 'ACTIVE') {
+      throw new UnauthorizedError('Tài khoản của bạn đang bị khóa hoặc ngừng hoạt động.');
+    }
+
+    // Đính kèm thông tin user vào request object
+    req.user = {
+      id: user.id,
+      username: user.username,
+      fullName: user.full_name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role_code,
+      roleName: user.role_name,
+      departmentId: user.department_id,
+      departmentCode: user.department_code,
+      departmentName: user.department_name,
+    };
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Middleware phân quyền dựa trên vai trò Role (Authorization - RBAC)
+ * @param  {...string} allowedRoles Danh sách các Role được phép truy cập (VD: authorize("ADMIN"), authorize("ADMIN", "MANAGER"))
+ */
+const authorize = (...allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return next(new UnauthorizedError('Chưa xác thực danh tính người dùng. Vui lòng đăng nhập.'));
+    }
+
+    // Nếu người dùng không nằm trong danh sách Role được phép
+    if (!allowedRoles.includes(req.user.role)) {
+      return next(
+        new ForbiddenError(
+          `Bạn không có quyền thực hiện hành động này. Yêu cầu một trong các quyền: [${allowedRoles.join(', ')}]. Vai trò hiện tại của bạn: [${req.user.role}].`
+        )
+      );
+    }
+
+    next();
+  };
+};
+
+module.exports = {
+  authenticate,
+  authorize,
+};
