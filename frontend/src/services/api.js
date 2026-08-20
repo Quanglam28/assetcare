@@ -14,10 +14,14 @@ const api = axios.create({
   },
 });
 
-// Request Interceptor: Luôn gửi cookie credentials và đính kèm custom CSRF header
+// Request Interceptor: Luôn gửi cookie credentials và đính kèm Bearer Token nếu có
 api.interceptors.request.use(
   (config) => {
     config.withCredentials = true;
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -29,12 +33,17 @@ api.interceptors.response.use(
   (error) => {
     if (error.response) {
       if (error.response.status === 401) {
-        // Chỉ chuyển hướng nếu không phải đang ở trang /login
-        const currentPath = window.location.pathname;
-        if (currentPath !== '/login') {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('user_info');
-          window.location.href = '/login';
+        const reqUrl = error.config?.url || '';
+        const isAuthCheck = reqUrl.includes('/auth/me') || reqUrl.includes('/auth/login') || reqUrl.includes('/auth/register');
+        
+        // Không redirect nếu là request kiểm tra phiên auth/me ban đầu hoặc đang ở public pages
+        if (!isAuthCheck) {
+          const currentPath = window.location.pathname;
+          if (currentPath !== '/login' && currentPath !== '/register' && !currentPath.startsWith('/device/')) {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user_info');
+            window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+          }
         }
       }
       return Promise.reject(error.response.data || error.message);

@@ -20,22 +20,37 @@ export const AuthProvider = ({ children }) => {
    * Khởi tạo và kiểm tra tính hợp lệ của phiên làm việc qua Cookie hoặc Token
    */
   const initAuth = useCallback(async () => {
+    const savedToken = localStorage.getItem('access_token');
+    const savedUser = localStorage.getItem('user_info');
+
+    if (savedToken) {
+      setToken(savedToken);
+    }
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch {}
+    }
+
     try {
       const res = await authService.getMe();
       if (res?.success && res?.data) {
         setUser(res.data);
         localStorage.setItem('user_info', JSON.stringify(res.data));
-      } else {
+      } else if (!savedToken) {
         setUser(null);
         setToken(null);
         localStorage.removeItem('access_token');
         localStorage.removeItem('user_info');
       }
-    } catch {
-      setUser(null);
-      setToken(null);
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('user_info');
+    } catch (err) {
+      // Chỉ dọn dẹp khi nhận lỗi xác thực 401 rõ ràng
+      if (err?.response?.status === 401 || err?.status === 401 || !savedToken) {
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user_info');
+      }
     } finally {
       setLoading(false);
     }
@@ -51,10 +66,13 @@ export const AuthProvider = ({ children }) => {
   const login = async (usernameOrEmail, password) => {
     const res = await authService.login(usernameOrEmail, password);
     if (res?.success && res?.data) {
-      const { user: userInfo } = res.data;
+      const { token: accessToken, user: userInfo } = res.data;
+      if (accessToken) {
+        setToken(accessToken);
+        localStorage.setItem('access_token', accessToken);
+      }
       setUser(userInfo);
       localStorage.setItem('user_info', JSON.stringify(userInfo));
-      localStorage.removeItem('access_token'); // Dọn dẹp token cũ nếu có
       return userInfo;
     }
     throw new Error(res?.message || 'Đăng nhập không thành công');
@@ -66,10 +84,13 @@ export const AuthProvider = ({ children }) => {
   const register = async (registerData) => {
     const res = await authService.register(registerData);
     if (res?.success && res?.data) {
-      const { user: userInfo } = res.data;
+      const { token: accessToken, user: userInfo } = res.data;
+      if (accessToken) {
+        setToken(accessToken);
+        localStorage.setItem('access_token', accessToken);
+      }
       setUser(userInfo);
       localStorage.setItem('user_info', JSON.stringify(userInfo));
-      localStorage.removeItem('access_token'); // Dọn dẹp token cũ nếu có
       return userInfo;
     }
     throw new Error(res?.message || 'Đăng ký không thành công');
@@ -132,7 +153,7 @@ export const AuthProvider = ({ children }) => {
     user,
     token,
     loading,
-    isAuthenticated: !!user && !!token,
+    isAuthenticated: !!user,
     isAdmin,
     isManager,
     isTechnician,
