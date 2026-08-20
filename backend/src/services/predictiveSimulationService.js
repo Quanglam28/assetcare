@@ -338,38 +338,40 @@ class PredictiveSimulationService {
    * 6. Top 10 thiết bị có nguy cơ xấu đi nhanh nhất (Top Degrading Assets)
    */
   async getPredictiveTopDegradingDevices(limit = 10, days = 30) {
-    const devices = await deviceRepository.findAll({ limit: 100 });
+    const devices = await deviceRepository.findAll({ limit: 50 });
     const list = devices.devices || devices || [];
 
-    const simulatedList = [];
+    const simResults = await Promise.all(
+      list.map(async (dev) => {
+        try {
+          const sim = await this.compareCurrentVsProjected(dev.id, days);
+          const prioDelta = sim.delta?.priority || 0;
+          const riskDelta = sim.delta?.risk || 0;
 
-    for (const dev of list) {
-      try {
-        const sim = await this.compareCurrentVsProjected(dev.id, days);
-        const prioDelta = sim.delta?.priority || 0;
-        const riskDelta = sim.delta?.risk || 0;
+          return {
+            deviceId: dev.id,
+            deviceName: dev.name,
+            deviceCode: dev.code,
+            roomName: dev.room_name || 'Phòng ban',
+            buildingName: dev.building_name || 'Tòa nhà',
+            currentHealth: sim.current.healthScore,
+            projectedHealth: sim.projected.healthScore,
+            currentRisk: sim.current.failureRisk,
+            projectedRisk: sim.projected.failureRisk,
+            currentPriority: sim.current.priorityScore,
+            projectedPriority: sim.projected.priorityScore,
+            priorityDelta: prioDelta,
+            riskDelta: riskDelta,
+            statusChange: sim.statusChange?.priority || '',
+            recommendation: prioDelta >= 15 ? 'Bảo trì khẩn cấp trong 24h' : (prioDelta >= 8 ? 'Lập lịch trong tuần' : 'Theo dõi định kỳ'),
+          };
+        } catch {
+          return null;
+        }
+      })
+    );
 
-        simulatedList.push({
-          deviceId: dev.id,
-          deviceName: dev.name,
-          deviceCode: dev.code,
-          roomName: dev.room_name || 'Phòng ban',
-          buildingName: dev.building_name || 'Tòa nhà',
-          currentHealth: sim.current.healthScore,
-          projectedHealth: sim.projected.healthScore,
-          currentRisk: sim.current.failureRisk,
-          projectedRisk: sim.projected.failureRisk,
-          currentPriority: sim.current.priorityScore,
-          projectedPriority: sim.projected.priorityScore,
-          priorityDelta: prioDelta,
-          riskDelta: riskDelta,
-          statusChange: sim.statusChange.priority,
-          recommendation: prioDelta >= 15 ? 'Bảo trì khẩn cấp trong 24h' : (prioDelta >= 8 ? 'Lập lịch trong tuần' : 'Theo dõi định kỳ'),
-        });
-      } catch (err) {
-        // Skip invalid devices
-      }
-    }
+    const simulatedList = simResults.filter(Boolean);
 
     // Sắp xếp theo mức độ gia tăng điểm ưu tiên giảm dần (projectedPriority - currentPriority DESC)
     simulatedList.sort((a, b) => b.priorityDelta - a.priorityDelta);
@@ -381,7 +383,7 @@ class PredictiveSimulationService {
    * 7. Tổng hợp cảnh báo dự báo toàn trường (Predictive Maintenance Alerts)
    */
   async getPredictiveAlertsSummary(days = 30) {
-    const topDegrading = await this.getPredictiveTopDegradingDevices(100, days);
+    const topDegrading = await this.getPredictiveTopDegradingDevices(50, days);
 
     let criticalTransitionCount = 0;
     let highRiskSurgeCount = 0;

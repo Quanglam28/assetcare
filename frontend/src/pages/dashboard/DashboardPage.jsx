@@ -97,15 +97,11 @@ export const DashboardPage = () => {
         if (filters[k]) params[k] = filters[k];
       });
 
-      const [statsRes, chartsRes, slaRes, healthDistRes, riskSumRes, topRiskRes, predAlertsRes, topDegradingRes] = await Promise.all([
+      // 1. Tải nhanh tầng 1: KPI Stats, Biểu đồ chính, SLA Stats (Hiển thị ngay cho người dùng)
+      const [statsRes, chartsRes, slaRes] = await Promise.all([
         dashboardService.getOverviewStats(params).catch(() => null),
         dashboardService.getAllCharts(params).catch(() => null),
         dashboardService.getSlaStats(params).catch(() => null),
-        dashboardService.getHealthDistribution().catch(() => null),
-        dashboardService.getMaintenanceRiskSummary().catch(() => null),
-        dashboardService.getTopAtRiskAssets(10).catch(() => null),
-        dashboardService.getPredictiveAlerts(30).catch(() => null),
-        dashboardService.getTopDegrading(30, 10).catch(() => null),
       ]);
 
       if (statsRes?.data?.success) setStats(statsRes.data.data);
@@ -117,20 +113,31 @@ export const DashboardPage = () => {
       if (slaRes?.data?.success) setSlaData(slaRes.data.data);
       else if (slaRes?.data) setSlaData(slaRes.data);
 
-      if (healthDistRes?.data?.success) setHealthDist(healthDistRes.data.data);
-      else if (healthDistRes?.data) setHealthDist(healthDistRes.data);
+      // Kết thúc loading sớm để người dùng xem được ngay các thẻ KPI và biểu đồ
+      setLoading(false);
 
-      if (riskSumRes?.data?.success) setRiskSummary(riskSumRes.data.data);
-      else if (riskSumRes?.data) setRiskSummary(riskSumRes.data);
+      // 2. Tải song song tầng 2: Phân tích sức khỏe, rủi ro và mô phỏng dự báo
+      Promise.all([
+        dashboardService.getHealthDistribution().catch(() => null),
+        dashboardService.getMaintenanceRiskSummary().catch(() => null),
+        dashboardService.getTopAtRiskAssets(10).catch(() => null),
+        dashboardService.getPredictiveAlerts(30).catch(() => null),
+        dashboardService.getTopDegrading(30, 10).catch(() => null),
+      ]).then(([healthDistRes, riskSumRes, topRiskRes, predAlertsRes, topDegradingRes]) => {
+        if (healthDistRes?.data?.success) setHealthDist(healthDistRes.data.data);
+        else if (healthDistRes?.data) setHealthDist(healthDistRes.data);
 
-      if (topRiskRes?.data?.success) setTopAtRisk(topRiskRes.data.data || []);
-      else if (topRiskRes?.data) setTopAtRisk(topRiskRes.data || []);
+        if (riskSumRes?.data?.success) setRiskSummary(riskSumRes.data.data);
+        else if (riskSumRes?.data) setRiskSummary(riskSumRes.data);
 
-      if (predAlertsRes?.data) setPredictiveAlerts(predAlertsRes.data);
-      if (topDegradingRes?.data) setTopDegrading(topDegradingRes.data);
+        if (topRiskRes?.data?.success) setTopAtRisk(topRiskRes.data.data || []);
+        else if (topRiskRes?.data) setTopAtRisk(topRiskRes.data || []);
+
+        if (predAlertsRes?.data) setPredictiveAlerts(predAlertsRes.data);
+        if (topDegradingRes?.data) setTopDegrading(topDegradingRes.data);
+      });
     } catch (err) {
       setError(err?.message || 'Không thể tải dữ liệu bảng điều khiển');
-    } finally {
       setLoading(false);
     }
   };
