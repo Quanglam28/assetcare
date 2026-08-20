@@ -108,6 +108,9 @@ class WorkOrderService {
     if (currentUser && currentUser.role === 'USER' && wo.reported_by !== currentUser.id) {
       throw new ForbiddenError('Bạn không có quyền xem lệnh công tác này');
     }
+    if (currentUser && currentUser.role === 'TECHNICIAN' && wo.assigned_to && Number(wo.assigned_to) !== Number(currentUser.id)) {
+      throw new ForbiddenError('Bạn không có quyền xem lệnh công tác được phân công cho kỹ thuật viên khác');
+    }
     return wo;
   }
 

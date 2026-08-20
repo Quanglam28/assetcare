@@ -292,7 +292,9 @@ async function runTests() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username: 'user_ha', password: 'password123' }),
   });
-  userToken = (await loginUser.json()).data.token;
+  const loginUserData = await loginUser.json();
+  userToken = loginUserData.data.token;
+  const currentUserId = loginUserData.data.user.id;
 
   const loginAdmin = await fetch(`${BASE_URL}/api/auth/login`, {
     method: 'POST',
@@ -306,7 +308,9 @@ async function runTests() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username: 'tech_nam', password: 'password123' }),
   });
-  techToken = (await loginTech.json()).data.token;
+  const loginTechData = await loginTech.json();
+  techToken = loginTechData.data.token;
+  const currentTechId = loginTechData.data.user.id;
 
   await test('RBAC: User thường không được truy cập API Quản trị người dùng (GET /api/users) -> 403 Forbidden', async () => {
     const res = await fetch(`${BASE_URL}/api/users`, {
@@ -345,7 +349,8 @@ async function runTests() {
   // =========================================================================
   await test('IDOR: User thường không được xem chi tiết phiếu bảo trì của người khác', async () => {
     const [rows] = await pool.query(
-      'SELECT id, reporter_id FROM maintenance_requests WHERE reporter_id != 4 LIMIT 1'
+      'SELECT id, reporter_id FROM maintenance_requests WHERE reporter_id != ? LIMIT 1',
+      [currentUserId]
     );
     if (rows.length > 0) {
       const otherRequestId = rows[0].id;
@@ -358,7 +363,8 @@ async function runTests() {
 
   await test('IDOR: Kỹ thuật viên không được hoàn tất lệnh công tác của KTV khác', async () => {
     const [rows] = await pool.query(
-      "SELECT id, assigned_to, status FROM maintenance_work_orders WHERE assigned_to IS NOT NULL AND assigned_to != 3 AND status IN ('OPEN', 'ASSIGNED', 'IN_PROGRESS') LIMIT 1"
+      "SELECT id, assigned_to, status FROM maintenance_work_orders WHERE assigned_to IS NOT NULL AND assigned_to != ? AND status IN ('OPEN', 'ASSIGNED', 'IN_PROGRESS') LIMIT 1",
+      [currentTechId]
     );
     if (rows.length > 0) {
       const otherWoId = rows[0].id;

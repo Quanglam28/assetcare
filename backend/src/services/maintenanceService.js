@@ -35,6 +35,20 @@ class MaintenanceService {
       throw new BadRequestError('Thiết bị này đã được thanh lý hoặc ngừng sử dụng (RETIRED), không thể tạo phiếu bảo trì mới.');
     }
 
+    // Chống tạo trùng phiếu lặp lại trong vòng 15 giây cho cùng 1 thiết bị và cùng 1 người báo
+    const [recentDupes] = await pool.execute(`
+      SELECT id, code, title, created_at
+      FROM maintenance_requests
+      WHERE device_id = ? AND reporter_id = ? AND status = 'PENDING'
+        AND created_at >= DATE_SUB(NOW(), INTERVAL 15 SECOND)
+      LIMIT 1
+    `, [device.id, currentUser.id]);
+
+    if (recentDupes.length > 0) {
+      logger.warn(`[Maintenance] Bỏ qua yêu cầu tạo trùng phiếu [${recentDupes[0].code}] từ user [${currentUser.username}]`);
+      return maintenanceRepository.findById(recentDupes[0].id);
+    }
+
     const nextCode = await maintenanceRepository.generateNextCode();
 
     let fullDescription = description.trim();
