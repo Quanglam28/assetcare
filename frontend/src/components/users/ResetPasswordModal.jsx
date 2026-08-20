@@ -6,7 +6,7 @@ import { userService } from '../../services/userService';
 import { KeyRound, Copy, Check, Lock, Eye, EyeOff } from 'lucide-react';
 
 export const ResetPasswordModal = ({ isOpen, onClose, user, onSuccess }) => {
-  const [newPassword, setNewPassword] = useState('password123');
+  const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -17,6 +17,10 @@ export const ResetPasswordModal = ({ isOpen, onClose, user, onSuccess }) => {
 
   const handleReset = async (e) => {
     e.preventDefault();
+    if (!newPassword.trim()) {
+      setError('Vui lòng nhập mật khẩu mới');
+      return;
+    }
     setError('');
     setSuccessResult(null);
 
@@ -41,7 +45,7 @@ export const ResetPasswordModal = ({ isOpen, onClose, user, onSuccess }) => {
   };
 
   const handleClose = () => {
-    setNewPassword('password123');
+    setNewPassword('');
     setError('');
     setSuccessResult(null);
     setShowPassword(false);
@@ -119,12 +123,15 @@ export const ResetPasswordModal = ({ isOpen, onClose, user, onSuccess }) => {
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  id="newPassword"
+                  name="newPassword"
+                  autoComplete="new-password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Nhập mật khẩu mới hoặc dùng mặc định..."
                   className="block w-full rounded-lg border border-slate-300 bg-white pl-9 pr-10 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
                   required
-                  minLength={6}
+                  minLength={8}
                 />
                 <button
                   type="button"
@@ -135,7 +142,7 @@ export const ResetPasswordModal = ({ isOpen, onClose, user, onSuccess }) => {
                 </button>
               </div>
               <p className="text-[11px] text-slate-400 mt-1">
-                Gợi ý mặc định: <code className="font-mono text-brand-600 font-semibold cursor-pointer" onClick={() => setNewPassword('password123')}>password123</code>
+                Yêu cầu mật khẩu: tối thiểu 8 ký tự, kết hợp cả chữ và số.
               </p>
             </div>
 

@@ -3,11 +3,8 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Alert } from '../../components/ui/Alert';
-import { getSafeRedirectPath, savePendingRedirect, consumePendingRedirect } from '../../utils/redirectUtil';
-import { 
-  User, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, 
-  Building, Wrench, GraduationCap, Check, QrCode, UserPlus
-} from 'lucide-react';
+import { getSafeRedirectPath, consumePendingRedirect } from '../../utils/redirectUtil';
+import { User, Lock, Eye, EyeOff, ArrowRight, QrCode } from 'lucide-react';
 
 export const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -16,7 +13,6 @@ export const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedDemo, setSelectedDemo] = useState(null);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -24,54 +20,10 @@ export const LoginPage = () => {
 
   const searchParams = new URLSearchParams(location.search);
   const redirectParam = searchParams.get('redirect');
-  const safeRedirect = getSafeRedirectPath(redirectParam || location.state?.from?.pathname || consumePendingRedirect(''), '');
-
-  // 4 tài khoản Demo chuẩn theo 4 Roles
-  const demoAccounts = [
-    {
-      role: 'ADMIN',
-      username: 'admin',
-      pass: 'password123',
-      label: 'Phạm Quang Lâm',
-      desc: 'Quản trị viên (Admin)',
-      icon: ShieldCheck,
-      color: 'border-purple-200 hover:border-purple-400 bg-purple-50/60 text-purple-700',
-    },
-    {
-      role: 'MANAGER',
-      username: 'manager',
-      pass: 'password123',
-      label: 'Tống Quang Trung',
-      desc: 'Trưởng ban Quản lý CSVC',
-      icon: Building,
-      color: 'border-blue-200 hover:border-blue-400 bg-blue-50/60 text-blue-700',
-    },
-    {
-      role: 'TECHNICIAN',
-      username: 'tech_nam',
-      pass: 'password123',
-      label: 'Vũ Hải Vịnh',
-      desc: 'Kỹ thuật viên trưởng',
-      icon: Wrench,
-      color: 'border-amber-200 hover:border-amber-400 bg-amber-50/60 text-amber-700',
-    },
-    {
-      role: 'USER',
-      username: 'user_ha',
-      pass: 'password123',
-      label: 'TS. Nguyễn Thu Hà',
-      desc: 'Giảng viên Khoa CNTT',
-      icon: GraduationCap,
-      color: 'border-emerald-200 hover:border-emerald-400 bg-emerald-50/60 text-emerald-700',
-    },
-  ];
-
-  const handleSelectDemo = (acc) => {
-    setSelectedDemo(acc.role);
-    setUsername(acc.username);
-    setPassword(acc.pass);
-    setError('');
-  };
+  const safeRedirect = getSafeRedirectPath(
+    redirectParam || location.state?.from?.pathname || consumePendingRedirect(''),
+    ''
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -144,6 +96,8 @@ export const LoginPage = () => {
             <input
               type="text"
               id="username"
+              name="username"
+              autoComplete="username"
               placeholder="Nhập username hoặc email trường..."
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -169,6 +123,8 @@ export const LoginPage = () => {
             <input
               type={showPassword ? 'text' : 'password'}
               id="password"
+              name="password"
+              autoComplete="current-password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -215,41 +171,6 @@ export const LoginPage = () => {
         <Link to={registerLink} className="font-bold text-brand-600 hover:underline">
           Đăng ký tài khoản mới
         </Link>
-      </div>
-
-      {/* Quick Demo Account Selector (4 Roles) */}
-      <div className="mt-6 pt-5 border-t border-slate-100">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-            ⚡ Chọn nhanh tài khoản Demo (4 Roles):
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          {demoAccounts.map((acc) => {
-            const Icon = acc.icon;
-            const isSelected = selectedDemo === acc.role;
-
-            return (
-              <button
-                key={acc.role}
-                type="button"
-                onClick={() => handleSelectDemo(acc)}
-                className={`p-2.5 rounded-xl border text-left transition-all relative ${acc.color} ${
-                  isSelected ? 'ring-2 ring-brand-500 shadow-sm scale-[1.02]' : 'hover:scale-[1.01]'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <Icon className="w-4 h-4" />
-                  {isSelected && <Check className="w-3.5 h-3.5 text-brand-600 font-bold" />}
-                </div>
-                <p className="font-bold text-xs mt-1.5 leading-tight">{acc.label}</p>
-                <p className="text-[10px] opacity-80 truncate">{acc.desc}</p>
-                <span className="text-[10px] font-mono opacity-70 block mt-1">user: {acc.username}</span>
-              </button>
-            );
-          })}
-        </div>
       </div>
     </div>
   );

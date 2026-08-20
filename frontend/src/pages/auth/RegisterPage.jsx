@@ -37,8 +37,8 @@ export const RegisterPage = () => {
       return;
     }
 
-    if (password.length < 6) {
-      setError('Mật khẩu phải có độ dài tối thiểu 6 ký tự');
+    if (password.length < 8) {
+      setError('Mật khẩu phải có độ dài tối thiểu 8 ký tự');
       return;
     }
 
@@ -113,6 +113,8 @@ export const RegisterPage = () => {
             <input
               type="text"
               id="fullName"
+              name="name"
+              autoComplete="name"
               placeholder="VD: TS. Nguyễn Văn A / Sinh viên..."
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
@@ -135,6 +137,8 @@ export const RegisterPage = () => {
             <input
               type="email"
               id="email"
+              name="email"
+              autoComplete="email"
               placeholder="ten@utt.edu.vn hoặc email cá nhân..."
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -147,7 +151,7 @@ export const RegisterPage = () => {
         {/* Mật khẩu */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Mật khẩu (tối thiểu 6 ký tự) <span className="text-rose-500">*</span>
+            Mật khẩu (tối thiểu 8 ký tự, gồm chữ & số) <span className="text-rose-500">*</span>
           </label>
           <div className="relative rounded-lg shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -156,6 +160,8 @@ export const RegisterPage = () => {
             <input
               type={showPassword ? 'text' : 'password'}
               id="password"
+              name="password"
+              autoComplete="new-password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -184,6 +190,8 @@ export const RegisterPage = () => {
             <input
               type={showPassword ? 'text' : 'password'}
               id="confirmPassword"
+              name="confirmPassword"
+              autoComplete="new-password"
               placeholder="••••••••"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}

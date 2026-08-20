@@ -17,27 +17,28 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   /**
-   * Khởi tạo và kiểm tra tính hợp lệ của token khi nạp ứng dụng
+   * Khởi tạo và kiểm tra tính hợp lệ của phiên làm việc qua Cookie hoặc Token
    */
   const initAuth = useCallback(async () => {
-    const savedToken = localStorage.getItem('access_token');
-    if (savedToken) {
-      try {
-        const res = await authService.getMe();
-        if (res?.success && res?.data) {
-          setUser(res.data);
-          localStorage.setItem('user_info', JSON.stringify(res.data));
-        } else {
-          // Token không còn hợp lệ
-          logout();
-        }
-      } catch {
-        logout();
+    try {
+      const res = await authService.getMe();
+      if (res?.success && res?.data) {
+        setUser(res.data);
+        localStorage.setItem('user_info', JSON.stringify(res.data));
+      } else {
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user_info');
       }
-    } else {
+    } catch {
       setUser(null);
+      setToken(null);
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user_info');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -50,11 +51,10 @@ export const AuthProvider = ({ children }) => {
   const login = async (usernameOrEmail, password) => {
     const res = await authService.login(usernameOrEmail, password);
     if (res?.success && res?.data) {
-      const { token: accessToken, user: userInfo } = res.data;
-      setToken(accessToken);
+      const { user: userInfo } = res.data;
       setUser(userInfo);
-      localStorage.setItem('access_token', accessToken);
       localStorage.setItem('user_info', JSON.stringify(userInfo));
+      localStorage.removeItem('access_token'); // Dọn dẹp token cũ nếu có
       return userInfo;
     }
     throw new Error(res?.message || 'Đăng nhập không thành công');
@@ -66,11 +66,10 @@ export const AuthProvider = ({ children }) => {
   const register = async (registerData) => {
     const res = await authService.register(registerData);
     if (res?.success && res?.data) {
-      const { token: accessToken, user: userInfo } = res.data;
-      setToken(accessToken);
+      const { user: userInfo } = res.data;
       setUser(userInfo);
-      localStorage.setItem('access_token', accessToken);
       localStorage.setItem('user_info', JSON.stringify(userInfo));
+      localStorage.removeItem('access_token'); // Dọn dẹp token cũ nếu có
       return userInfo;
     }
     throw new Error(res?.message || 'Đăng ký không thành công');

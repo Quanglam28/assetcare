@@ -1,5 +1,6 @@
 const authService = require('../services/authService');
 const ApiResponse = require('../utils/apiResponse');
+const { getAuthCookieOptions, getClearCookieOptions, COOKIE_NAME } = require('../config/cookieConfig');
 
 /**
  * Controller xử lý các request xác thực & quản lý tài khoản
@@ -13,6 +14,12 @@ class AuthController {
     try {
       const { username, password } = req.body;
       const result = await authService.login({ username, password });
+
+      // Đặt HttpOnly Secure SameSite Cookie an toàn
+      if (result.token) {
+        res.cookie(COOKIE_NAME, result.token, getAuthCookieOptions());
+      }
+
       return ApiResponse.success(res, {
         message: 'Đăng nhập thành công',
         data: result,
@@ -30,6 +37,12 @@ class AuthController {
     try {
       const { fullName, email, username, password } = req.body;
       const result = await authService.register({ fullName, email, username, password });
+
+      // Đặt HttpOnly Secure SameSite Cookie an toàn
+      if (result.token) {
+        res.cookie(COOKIE_NAME, result.token, getAuthCookieOptions());
+      }
+
       return ApiResponse.created(res, {
         message: 'Đăng ký tài khoản thành công',
         data: result,
@@ -82,6 +95,10 @@ class AuthController {
     try {
       const userId = req.user ? req.user.id : null;
       const result = await authService.logout(userId);
+
+      // Xóa HttpOnly Cookie an toàn
+      res.clearCookie(COOKIE_NAME, getClearCookieOptions());
+
       return ApiResponse.success(res, {
         message: result.message,
         data: null,

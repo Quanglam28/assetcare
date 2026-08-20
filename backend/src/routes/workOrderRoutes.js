@@ -7,9 +7,9 @@ const router = express.Router();
 // Yêu cầu xác thực đăng nhập
 router.use(authenticate);
 
-// 1. Xem danh sách & thống kê
-router.get('/', (req, res, next) => workOrderController.getAll(req, res, next));
-router.get('/stats', (req, res, next) => workOrderController.getStats(req, res, next));
+// 1. Xem danh sách & thống kê (ADMIN, MANAGER, TECHNICIAN)
+router.get('/', authorize('ADMIN', 'MANAGER', 'TECHNICIAN'), (req, res, next) => workOrderController.getAll(req, res, next));
+router.get('/stats', authorize('ADMIN', 'MANAGER', 'TECHNICIAN'), (req, res, next) => workOrderController.getStats(req, res, next));
 router.get('/:id', (req, res, next) => workOrderController.getById(req, res, next));
 
 // 2. Tạo lệnh công tác (Admin, Manager, Technician)

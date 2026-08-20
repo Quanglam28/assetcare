@@ -1,26 +1,34 @@
 const jwt = require('jsonwebtoken');
 const jwtConfig = require('../config/jwt');
+const { COOKIE_NAME } = require('../config/cookieConfig');
 const { UnauthorizedError, ForbiddenError } = require('../utils/appError');
 const userRepository = require('../repositories/userRepository');
 
 /**
- * Middleware xác thực danh tính qua JWT Bearer Token (Authentication)
+ * Middleware xác thực danh tính qua HttpOnly Cookie hoặc JWT Bearer Token (Authentication)
  */
 const authenticate = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedError('Vui lòng đăng nhập để tiếp tục (Thiếu Header Authorization: Bearer <token>)');
+    let token = null;
+
+    // 1. Ưu tiên đọc Token từ HttpOnly Secure Cookie
+    if (req.cookies && req.cookies[COOKIE_NAME]) {
+      token = req.cookies[COOKIE_NAME];
+    }
+    // 2. Fallback đọc từ Header Authorization: Bearer <token> (Dành cho Mobile Native, Postman & Automated Test Suites)
+    else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
     }
 
-    const token = authHeader.split(' ')[1];
     if (!token) {
-      throw new UnauthorizedError('Token xác thực không hợp lệ');
+      throw new UnauthorizedError('Vui lòng đăng nhập để tiếp tục (Không tìm thấy phiên xác thực hợp lệ)');
     }
 
     let decoded;
     try {
-      decoded = jwt.verify(token, jwtConfig.secret);
+      decoded = jwt.verify(token, jwtConfig.secret, {
+        algorithms: ['HS256'],
+      });
     } catch (jwtErr) {
       if (jwtErr.name === 'TokenExpiredError') {
         throw new UnauthorizedError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');

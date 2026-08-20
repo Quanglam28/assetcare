@@ -100,10 +100,13 @@ class WorkOrderService {
   /**
    * 2. Lấy chi tiết lệnh công tác
    */
-  async getWorkOrderById(id) {
+  async getWorkOrderById(id, currentUser = null) {
     const wo = await workOrderRepository.findById(id);
     if (!wo) {
       throw new NotFoundError(`Không tìm thấy lệnh công tác với ID [${id}]`);
+    }
+    if (currentUser && currentUser.role === 'USER' && wo.reported_by !== currentUser.id) {
+      throw new ForbiddenError('Bạn không có quyền xem lệnh công tác này');
     }
     return wo;
   }
@@ -166,6 +169,10 @@ class WorkOrderService {
   async startWorkOrder(id, actorUser) {
     const wo = await this.getWorkOrderById(id);
 
+    if (actorUser && actorUser.role === 'TECHNICIAN' && wo.assigned_to && Number(wo.assigned_to) !== Number(actorUser.id)) {
+      throw new ForbiddenError('Bạn không có quyền thao tác trên lệnh công tác của kỹ thuật viên khác');
+    }
+
     const validTransitions = config.VALID_TRANSITIONS[wo.status] || [];
     if (!validTransitions.includes(config.STATUS.IN_PROGRESS)) {
       throw new BadRequestError(`Không thể chuyển trạng thái từ [${wo.status}] sang [${config.STATUS.IN_PROGRESS}]`);
@@ -194,6 +201,10 @@ class WorkOrderService {
    */
   async completeWorkOrder(id, { actualCost = 0, resolution = '', technicianNote = '' }, actorUser) {
     const wo = await this.getWorkOrderById(id);
+
+    if (actorUser && actorUser.role === 'TECHNICIAN' && wo.assigned_to && Number(wo.assigned_to) !== Number(actorUser.id)) {
+      throw new ForbiddenError('Bạn không có quyền hoàn tất lệnh công tác của kỹ thuật viên khác');
+    }
 
     const validTransitions = config.VALID_TRANSITIONS[wo.status] || [];
     if (!validTransitions.includes(config.STATUS.COMPLETED)) {

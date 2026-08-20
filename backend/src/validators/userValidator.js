@@ -11,9 +11,9 @@ const createUserSchema = Joi.object({
     'string.email': 'Địa chỉ email không đúng định dạng',
     'any.required': 'Email là bắt buộc',
   }),
-  password: Joi.string().min(6).max(100).required().messages({
+  password: Joi.string().min(8).max(100).required().messages({
     'string.empty': 'Mật khẩu không được để trống',
-    'string.min': 'Mật khẩu phải có độ dài tối thiểu 6 ký tự',
+    'string.min': 'Mật khẩu phải có độ dài tối thiểu 8 ký tự',
     'any.required': 'Mật khẩu là bắt buộc',
   }),
   fullName: Joi.string().trim().min(2).max(100).required().messages({
@@ -63,8 +63,8 @@ const updateStatusSchema = Joi.object({
 });
 
 const resetPasswordSchema = Joi.object({
-  newPassword: Joi.string().min(6).max(100).optional().messages({
-    'string.min': 'Mật khẩu mới tối thiểu 6 ký tự',
+  newPassword: Joi.string().min(8).max(100).optional().messages({
+    'string.min': 'Mật khẩu mới tối thiểu 8 ký tự',
   }),
 });
 

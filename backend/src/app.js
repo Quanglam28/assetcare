@@ -3,6 +3,7 @@ const compression = require('compression');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 const fs = require('fs');
 const routesV1 = require('./routes/v1');
@@ -21,6 +22,9 @@ const { errorHandler, notFoundHandler } = require('./middlewares/errorHandler');
 
 const app = express();
 
+// Parse cookies securely
+app.use(cookieParser());
+
 // High Performance Gzip/Deflate Compression
 app.use(compression({
   threshold: 1024, // Compress all payloads > 1KB
@@ -31,14 +35,46 @@ app.use(compression({
 app.use(helmet({
   crossOriginResourcePolicy: false,
   contentSecurityPolicy: false,
+  xContentTypeOptions: true,
+  dnsPrefetchControl: true,
+  frameguard: { action: 'deny' },
+  hidePoweredBy: true,
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 }));
 
-// CORS Configuration
+// Dynamic CORS Configuration
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://localhost:5000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5000',
+].filter(Boolean);
+
 app.use(cors({
-  origin: true,
+  origin: (origin, callback) => {
+    // Cho phép requests không có origin (Mobile apps, Postman, Server-to-Server, cùng máy)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Cho phép localhost, mạng LAN nội bộ, và Vercel / Render domains
+    if (
+      /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$/.test(origin) ||
+      /^https:\/\/.*\.vercel\.app$/.test(origin) ||
+      /^https:\/\/.*\.onrender\.com$/.test(origin)
+    ) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('Chính sách CORS không cho phép truy cập từ Origin này'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 
 // HTTP Request Logger
@@ -49,6 +85,10 @@ if (process.env.NODE_ENV !== 'test') {
 // Body parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// CSRF Protection Middleware
+const { csrfProtection } = require('./middlewares/csrfMiddleware');
+app.use(csrfProtection);
 
 // Static file serving cho thư mục uploads
 const uploadPath = path.resolve(__dirname, '../uploads');
@@ -74,6 +114,7 @@ const { authRateLimiter, apiRateLimiter, publicScanRateLimiter } = require('./mi
 // Áp dụng Rate Limiting bảo vệ toàn diện hệ thống
 app.use('/api', apiRateLimiter);
 app.use('/api/auth/login', authRateLimiter);
+app.use('/api/auth/register', authRateLimiter);
 app.use('/api/public', publicScanRateLimiter);
 
 const healthRoutes = require('./routes/healthRoutes');

@@ -1,5 +1,6 @@
 const predictiveSimulationService = require('../services/predictiveSimulationService');
 const ApiResponse = require('../utils/apiResponse');
+const { BadRequestError } = require('../utils/appError');
 
 /**
  * Controller Quản lý Mô phỏng Dự báo Bảo trì (Predictive Simulation Controller)
@@ -7,12 +8,37 @@ const ApiResponse = require('../utils/apiResponse');
  */
 class SimulationController {
   /**
+   * Helper làm sạch và kiểm tra số ngày mô phỏng hợp lệ (1-365 ngày)
+   */
+  _validateDays(rawDays) {
+    if (rawDays === undefined || rawDays === null || rawDays === '') {
+      return 30;
+    }
+    const days = parseInt(rawDays, 10);
+    if (isNaN(days) || !isFinite(days) || days < 1 || days > 365) {
+      throw new BadRequestError('Số ngày mô phỏng (days) phải là số nguyên hợp lệ trong khoảng từ 1 đến 365 ngày');
+    }
+    return days;
+  }
+
+  /**
+   * Helper làm sạch deviceId
+   */
+  _validateDeviceId(rawId) {
+    const id = parseInt(rawId, 10);
+    if (isNaN(id) || !isFinite(id) || id <= 0) {
+      throw new BadRequestError('Mã ID thiết bị không hợp lệ');
+    }
+    return id;
+  }
+
+  /**
    * GET /api/devices/:id/simulation?days=30
    */
   async getSimulation(req, res, next) {
     try {
-      const deviceId = parseInt(req.params.id, 10);
-      const days = parseInt(req.query.days, 10) || 30;
+      const deviceId = this._validateDeviceId(req.params.id);
+      const days = this._validateDays(req.query.days);
 
       const result = await predictiveSimulationService.compareCurrentVsProjected(deviceId, days);
       return ApiResponse.success(res, {
@@ -30,8 +56,9 @@ class SimulationController {
    */
   async runSimulation(req, res, next) {
     try {
-      const deviceId = parseInt(req.params.id, 10);
-      const { days = 30, scenario = 'NO_MAINTENANCE' } = req.body;
+      const deviceId = this._validateDeviceId(req.params.id);
+      const days = this._validateDays(req.body.days);
+      const scenario = req.body.scenario === 'MAINTAIN_NOW' ? 'MAINTAIN_NOW' : 'NO_MAINTENANCE';
 
       const result = await predictiveSimulationService.compareCurrentVsProjected(deviceId, days);
       const scenarioData = result.scenarios[scenario] || result.scenarios.NO_MAINTENANCE;
@@ -64,8 +91,9 @@ class SimulationController {
    */
   async getTopDegrading(req, res, next) {
     try {
-      const days = parseInt(req.query.days, 10) || 30;
-      const limit = parseInt(req.query.limit, 10) || 10;
+      const days = this._validateDays(req.query.days);
+      const rawLimit = parseInt(req.query.limit, 10);
+      const limit = (!isNaN(rawLimit) && isFinite(rawLimit) && rawLimit >= 1 && rawLimit <= 100) ? rawLimit : 10;
 
       const result = await predictiveSimulationService.getPredictiveTopDegradingDevices(limit, days);
       return ApiResponse.success(res, {
@@ -82,7 +110,7 @@ class SimulationController {
    */
   async getPredictiveAlerts(req, res, next) {
     try {
-      const days = parseInt(req.query.days, 10) || 30;
+      const days = this._validateDays(req.query.days);
 
       const result = await predictiveSimulationService.getPredictiveAlertsSummary(days);
       return ApiResponse.success(res, {

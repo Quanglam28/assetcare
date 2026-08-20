@@ -46,8 +46,8 @@ export const ChangePasswordModal = ({ isOpen, onClose }) => {
       return;
     }
 
-    if (newPassword.length < 6) {
-      setError('Mật khẩu mới phải có tối thiểu 6 ký tự');
+    if (newPassword.length < 8) {
+      setError('Mật khẩu mới phải có tối thiểu 8 ký tự');
       return;
     }
 
@@ -106,6 +106,8 @@ export const ChangePasswordModal = ({ isOpen, onClose }) => {
             </div>
             <input
               type={showOld ? 'text' : 'password'}
+              name="oldPassword"
+              autoComplete="current-password"
               placeholder="Nhập mật khẩu đang dùng"
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
@@ -125,7 +127,7 @@ export const ChangePasswordModal = ({ isOpen, onClose }) => {
         {/* Mật khẩu mới */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Mật khẩu mới <span className="text-rose-500">*</span>
+            Mật khẩu mới (tối thiểu 8 ký tự) <span className="text-rose-500">*</span>
           </label>
           <div className="relative rounded-lg shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -133,7 +135,9 @@ export const ChangePasswordModal = ({ isOpen, onClose }) => {
             </div>
             <input
               type={showNew ? 'text' : 'password'}
-              placeholder="Tối thiểu 6 ký tự"
+              name="newPassword"
+              autoComplete="new-password"
+              placeholder="Tối thiểu 8 ký tự"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               className="block w-full rounded-lg border border-slate-300 bg-white pl-9 pr-10 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
@@ -160,6 +164,8 @@ export const ChangePasswordModal = ({ isOpen, onClose }) => {
             </div>
             <input
               type={showConfirm ? 'text' : 'password'}
+              name="confirmPassword"
+              autoComplete="new-password"
               placeholder="Nhập lại mật khẩu mới"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}

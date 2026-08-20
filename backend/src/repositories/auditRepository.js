@@ -1,14 +1,44 @@
 const { pool } = require('../config/db');
 
-/**
- * AuditRepository
- * Lưu vết hoạt động và sự kiện trọng yếu của hệ thống
- */
+const SENSITIVE_AUDIT_KEYS = new Set([
+  'password',
+  'oldpassword',
+  'newpassword',
+  'confirmpassword',
+  'password_hash',
+  'passwordhash',
+  'token',
+  'secret',
+  'authorization',
+  'accesstoken',
+  'refreshtoken',
+]);
+
+function sanitizeAuditData(data) {
+  if (!data) return data;
+  if (typeof data !== 'object') return data;
+  if (Array.isArray(data)) return data.map(sanitizeAuditData);
+  const clean = {};
+  for (const [k, v] of Object.entries(data)) {
+    if (SENSITIVE_AUDIT_KEYS.has(k.toLowerCase())) {
+      clean[k] = '[MASKED_CREDENTIAL]';
+    } else if (typeof v === 'object' && v !== null) {
+      clean[k] = sanitizeAuditData(v);
+    } else {
+      clean[k] = v;
+    }
+  }
+  return clean;
+}
+
 class AuditRepository {
   /**
    * Tạo bản ghi nhật ký kiểm toán (Audit Log)
    */
   async createLog({ userId, action, entityType, entityId, oldValues = null, newValues = null, ipAddress = null }) {
+    const cleanOld = sanitizeAuditData(oldValues);
+    const cleanNew = sanitizeAuditData(newValues);
+
     const sql = `
       INSERT INTO audit_logs (
         user_id, action, entity_type, entity_id, old_values, new_values, ip_address, created_at
@@ -20,8 +50,8 @@ class AuditRepository {
       action,
       entityType,
       entityId,
-      oldValues ? JSON.stringify(oldValues) : null,
-      newValues ? JSON.stringify(newValues) : null,
+      cleanOld ? JSON.stringify(cleanOld) : null,
+      cleanNew ? JSON.stringify(cleanNew) : null,
       ipAddress || null,
     ];
 

@@ -49,6 +49,7 @@ class AuthService {
 
     const token = jwt.sign(payload, jwtConfig.secret, {
       expiresIn: jwtConfig.expiresIn,
+      algorithm: jwtConfig.algorithm || 'HS256',
     });
 
     // 5. Chuẩn bị thông tin người dùng trả về (loại bỏ password_hash)
@@ -125,6 +126,7 @@ class AuthService {
 
     const token = jwt.sign(payload, jwtConfig.secret, {
       expiresIn: jwtConfig.expiresIn,
+      algorithm: jwtConfig.algorithm || 'HS256',
     });
 
     const userInfo = {

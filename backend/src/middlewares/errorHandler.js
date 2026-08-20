@@ -20,6 +20,12 @@ const errorHandler = (err, req, res, next) => {
     }));
   }
 
+  // Lỗi CORS
+  if (err.message && err.message.includes('CORS')) {
+    statusCode = HTTP_CODES.FORBIDDEN;
+    message = 'Chính sách CORS từ chối truy cập từ Origin này';
+  }
+
   // Lỗi cú pháp JSON body không hợp lệ
   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
     statusCode = HTTP_CODES.BAD_REQUEST;

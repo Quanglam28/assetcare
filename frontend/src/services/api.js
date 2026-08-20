@@ -6,19 +6,18 @@ const API_BASE_URL = import.meta.env.VITE_API_URL
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 20000,
+  timeout: 60000, // 60s để chờ Render Free Tier khởi động (Cold Start) khi đang sleep
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
   },
 });
 
-// Request Interceptor: Tự động đính kèm Bearer Token nếu có trong localStorage
+// Request Interceptor: Luôn gửi cookie credentials và đính kèm custom CSRF header
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    config.withCredentials = true;
     return config;
   },
   (error) => Promise.reject(error)

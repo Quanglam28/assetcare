@@ -16,7 +16,7 @@ export const UserCreatePage = () => {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    password: 'password123',
+    password: '',
     fullName: '',
     phone: '',
     roleId: '',

@@ -6,12 +6,22 @@ const SENSITIVE_KEYS = new Set([
   'password',
   'oldpassword',
   'newpassword',
+  'confirmpassword',
   'password_hash',
+  'passwordhash',
   'token',
+  'accesstoken',
+  'refreshtoken',
   'jwt_secret',
   'jwtsecret',
   'secret',
   'authorization',
+  'cookie',
+  'db_password',
+  'db_pass',
+  'tidb_password',
+  'apikey',
+  'api_key',
 ]);
 
 /**

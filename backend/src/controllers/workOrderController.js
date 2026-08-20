@@ -75,7 +75,7 @@ class WorkOrderController {
   async getById(req, res, next) {
     try {
       const id = parseInt(req.params.id, 10);
-      const wo = await workOrderService.getWorkOrderById(id);
+      const wo = await workOrderService.getWorkOrderById(id, req.user);
       return ApiResponse.success(res, {
         message: 'Lấy chi tiết lệnh công tác thành công',
         data: wo,

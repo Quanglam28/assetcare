@@ -8,22 +8,33 @@ export const getSafeRedirectPath = (redirectUrl, defaultPath = '/dashboard') => 
   }
 
   let decodedUrl = redirectUrl.trim();
-  try {
-    decodedUrl = decodeURIComponent(decodedUrl).trim();
-  } catch {
-    // Nếu giải mã lỗi, giữ nguyên URL thô
+  // Decode multiple layers if encoded
+  for (let i = 0; i < 3; i++) {
+    try {
+      const nextDecoded = decodeURIComponent(decodedUrl).trim();
+      if (nextDecoded === decodedUrl) break;
+      decodedUrl = nextDecoded;
+    } catch {
+      break;
+    }
   }
 
+  // Remove whitespace and control characters
+  decodedUrl = decodedUrl.replace(/[\r\n\t]/g, '').trim();
+
   // 1. Phải bắt đầu bằng '/'
-  // 2. Không được bắt đầu bằng '//' hoặc '/\' (tránh bypass protocol relative)
-  // 3. Không được chứa '://' (tránh http://, https://, ftp://...)
-  // 4. Không được chứa scheme javascript: hoặc data:
+  // 2. Không được bắt đầu bằng '//', '/\', '/@', '\'
+  // 3. Không được chứa dấu gạch chéo ngược '\'
+  // 4. Không được chứa '://'
+  // 5. Không được chứa scheme (javascript:, data:, vbscript:, http:, https:, etc.)
   if (
     decodedUrl.startsWith('/') &&
     !decodedUrl.startsWith('//') &&
     !decodedUrl.startsWith('/\\') &&
+    !decodedUrl.startsWith('/@') &&
+    !decodedUrl.includes('\\') &&
     !decodedUrl.includes('://') &&
-    !/^\s*(javascript|data|vbscript):/i.test(decodedUrl)
+    !/^\s*(https?|ftp|file|javascript|data|vbscript):/i.test(decodedUrl)
   ) {
     return decodedUrl;
   }
