@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { masterDataService } from '../../services/masterDataService';
 import { useToast } from '../../context/ToastContext';
+import api from '../../services/api';
 
 export const RiskMatrixPage = () => {
   const navigate = useNavigate();
@@ -50,20 +51,14 @@ export const RiskMatrixPage = () => {
   const loadMatrixData = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams();
-      if (filters.departmentId) params.append('departmentId', filters.departmentId);
-      if (filters.locationId) params.append('locationId', filters.locationId);
-      if (filters.riskStatus) params.append('riskStatus', filters.riskStatus);
-      if (filters.priorityStatus) params.append('priorityStatus', filters.priorityStatus);
+      const params = {};
+      if (filters.departmentId) params.departmentId = filters.departmentId;
+      if (filters.locationId) params.locationId = filters.locationId;
+      if (filters.riskStatus) params.riskStatus = filters.riskStatus;
+      if (filters.priorityStatus) params.priorityStatus = filters.priorityStatus;
 
-      const token = localStorage.getItem('token');
-      const res = await fetch(`/api/analytics/risk-matrix?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Lỗi tải dữ liệu ma trận');
-
-      setMatrixData(data.data || []);
+      const res = await api.get('/analytics/risk-matrix', { params });
+      setMatrixData(res.data || res || []);
     } catch (err) {
       showError(err.message || 'Không thể tải dữ liệu ma trận rủi ro');
     } finally {

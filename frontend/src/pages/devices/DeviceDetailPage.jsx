@@ -25,6 +25,7 @@ import {
   Activity, HeartPulse, Sparkles, History, Layers3, Zap, ClipboardList, Plus
 } from 'lucide-react';
 import { DEVICE_STATUS_CONFIG, MAINTENANCE_STATUS_CONFIG, PRIORITY_CONFIG } from '../../utils/constants';
+import api from '../../services/api';
 
 export const DeviceDetailPage = () => {
   const { id } = useParams();
@@ -57,15 +58,12 @@ export const DeviceDetailPage = () => {
       }
       setLoading(false);
 
-      const token = localStorage.getItem('token');
-      const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
-
       // 2. Lazy load Health, Risk, Priority, Work Orders và History song song không block UI
       Promise.all([
         healthService.getDeviceHealth(id).catch(() => null),
         healthService.getDeviceRisk(id).catch(() => null),
-        fetch(`/api/devices/${id}/priority`, { headers: authHeaders }).then(r => r.json()).catch(() => null),
-        fetch(`/api/work-orders?deviceId=${id}`, { headers: authHeaders }).then(r => r.json()).catch(() => null),
+        api.get(`/devices/${id}/priority`).catch(() => null),
+        api.get(`/work-orders`, { params: { deviceId: id } }).catch(() => null),
         healthService.getDeviceHealthHistory(id, days).catch(() => null),
       ]).then(([healthRes, riskRes, prioRes, woRes, historyRes]) => {
         if (healthRes?.success && healthRes?.data) {
@@ -74,11 +72,15 @@ export const DeviceDetailPage = () => {
         if (riskRes?.success && riskRes?.data) {
           setRisk(riskRes.data);
         }
-        if (prioRes?.success && prioRes?.data) {
+        if (prioRes?.data) {
           setPriority(prioRes.data);
+        } else if (prioRes?.priorityScore !== undefined) {
+          setPriority(prioRes);
         }
-        if (woRes?.success && woRes?.data) {
+        if (woRes?.data) {
           setWorkOrders(woRes.data);
+        } else if (Array.isArray(woRes)) {
+          setWorkOrders(woRes);
         }
         if (historyRes?.success && historyRes?.data) {
           setHistory(historyRes.data);

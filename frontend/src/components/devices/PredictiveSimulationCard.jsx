@@ -8,6 +8,7 @@ import {
   Wrench, Activity, HelpCircle
 } from 'lucide-react';
 import { CreateWorkOrderModal } from './CreateWorkOrderModal';
+import api from '../../services/api';
 
 export const PredictiveSimulationCard = ({ deviceId, device, onWorkOrderCreated }) => {
   const [days, setDays] = useState(30);
@@ -19,13 +20,13 @@ export const PredictiveSimulationCard = ({ deviceId, device, onWorkOrderCreated 
   const fetchSimulation = async (selectedDays) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const res = await fetch(`/api/devices/${deviceId}/simulation?days=${selectedDays}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await api.get(`/devices/${deviceId}/simulation`, {
+        params: { days: selectedDays },
       });
-      const data = await res.json();
-      if (res.ok && data.data) {
-        setSimData(data.data);
+      if (res?.data) {
+        setSimData(res.data);
+      } else if (res?.scenarios) {
+        setSimData(res);
       }
     } catch (err) {
       console.warn('Lỗi tải dữ liệu mô phỏng:', err);

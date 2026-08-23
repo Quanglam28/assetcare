@@ -5,6 +5,7 @@ import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { userService } from '../../services/userService';
 import { useToast } from '../../context/ToastContext';
+import api from '../../services/api';
 
 export const CreateWorkOrderModal = ({ isOpen, onClose, device, recommendation, onSuccess }) => {
   const { showSuccess, showError } = useToast();
@@ -78,21 +79,10 @@ export const CreateWorkOrderModal = ({ isOpen, onClose, device, recommendation, 
         estimatedCost: Number(formData.estimatedCost) || 0,
       };
 
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/work-orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
+      const res = await api.post('/work-orders', payload);
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Lỗi tạo lệnh công tác');
-
-      showSuccess(`Đã tạo thành công lệnh công tác [${data.data?.work_order_code || ''}]`);
-      if (onSuccess) onSuccess(data.data);
+      showSuccess(`Đã tạo thành công lệnh công tác [${res.data?.work_order_code || ''}]`);
+      if (onSuccess) onSuccess(res.data || res);
       onClose();
     } catch (err) {
       showError(err.message || 'Không thể tạo lệnh công tác');

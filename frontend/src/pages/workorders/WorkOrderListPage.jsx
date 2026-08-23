@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import api from '../../services/api';
 
 const STATUS_BADGE = {
   OPEN: { label: 'Chờ xử lý', bg: 'bg-slate-100 text-slate-800 border-slate-200' },
@@ -51,24 +52,19 @@ export const WorkOrderListPage = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-
-      const params = new URLSearchParams();
-      if (filters.status) params.append('status', filters.status);
-      if (filters.type) params.append('type', filters.type);
-      if (filters.priority) params.append('priority', filters.priority);
-      if (filters.search) params.append('search', filters.search);
+      const params = {};
+      if (filters.status) params.status = filters.status;
+      if (filters.type) params.type = filters.type;
+      if (filters.priority) params.priority = filters.priority;
+      if (filters.search) params.search = filters.search;
 
       const [listRes, statsRes] = await Promise.all([
-        fetch(`/api/work-orders?${params.toString()}`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`/api/work-orders/stats`, { headers: { Authorization: `Bearer ${token}` } }),
+        api.get('/work-orders', { params }),
+        api.get('/work-orders/stats'),
       ]);
 
-      const listData = await listRes.json();
-      const statsData = await statsRes.json();
-
-      setWorkOrders(listData.data || []);
-      setStats(statsData.data || {});
+      setWorkOrders(listRes.data || listRes || []);
+      setStats(statsRes.data || statsRes || {});
     } catch (err) {
       showError('Lỗi tải danh sách lệnh công tác');
     } finally {
@@ -78,16 +74,11 @@ export const WorkOrderListPage = () => {
 
   const handleStart = async (id) => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`/api/work-orders/${id}/start`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Không thể bắt đầu công việc');
+      await api.post(`/work-orders/${id}/start`);
       showSuccess('Đã chuyển trạng thái sang Đang thực hiện');
       loadData();
     } catch (err) {
-      showError(err.message);
+      showError(err?.message || 'Không thể bắt đầu công việc');
     }
   };
 
