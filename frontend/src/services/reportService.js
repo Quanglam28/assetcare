@@ -23,10 +23,13 @@ export const reportService = {
       responseType: 'blob',
     });
 
-    // Tạo liên kết tải file tự động
-    const blob = new Blob([response.data], {
-      type: format === 'csv' ? 'text/csv;charset=utf-8;' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
+    // Tạo liên kết tải file tự động (hỗ trợ cả raw blob và response wrapped)
+    const rawData = response?.data || response;
+    const blob = rawData instanceof Blob 
+      ? rawData 
+      : new Blob([rawData], {
+          type: format === 'csv' ? 'text/csv;charset=utf-8;' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
     const downloadUrl = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = downloadUrl;
