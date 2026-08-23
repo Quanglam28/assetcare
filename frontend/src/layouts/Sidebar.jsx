@@ -42,11 +42,11 @@ export const Sidebar = ({ isCollapsed, isMobileOpen, onCloseMobile }) => {
     {
       title: 'QUY TRÌNH BẢO TRÌ',
       items: [
-        { name: 'Ma trận rủi ro (Risk Matrix)', to: '/risk-matrix', icon: BarChart3, show: isAdmin || isManager || isTechnician },
-        { name: 'Lệnh công tác (Work Orders)', to: '/work-orders', icon: FileText, show: isAdmin || isManager || isTechnician },
-        { name: 'Xử lý sự cố (KTV)', to: '/technician/dashboard', icon: Wrench, show: isAdmin || isManager || isTechnician },
-        { name: 'Báo cáo sự cố', to: '/report-issue', icon: ShieldAlert, show: true },
-        { name: 'Phiếu yêu cầu bảo trì', to: '/maintenance', icon: FileText, show: true },
+        { name: 'Phân tích rủi ro', to: '/risk-matrix', icon: BarChart3, show: isAdmin || isManager || isTechnician },
+        { name: 'Công việc bảo trì', to: '/work-orders', icon: FileText, show: isAdmin || isManager || isTechnician },
+        { name: 'Xử lý sự cố', to: '/technician/dashboard', icon: Wrench, show: isAdmin || isManager || isTechnician },
+        { name: 'Báo cáo thiết bị hỏng', to: '/report-issue', icon: ShieldAlert, show: true },
+        { name: 'Yêu cầu bảo trì', to: '/maintenance', icon: FileText, show: true },
         { name: 'Lịch bảo trì định kỳ', to: '/schedules', icon: Calendar, show: isAdmin || isManager || isTechnician },
         { name: 'Báo cáo & Thống kê', to: '/reports', icon: BarChart3, show: isAdmin || isManager },
       ],
