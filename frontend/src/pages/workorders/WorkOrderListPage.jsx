@@ -182,25 +182,83 @@ export const WorkOrderListPage = () => {
         </div>
       </Card>
 
-      {/* Work Orders Table */}
+      {/* Work Orders Table & Mobile Cards */}
       {loading ? (
         <div className="h-64 flex items-center justify-center">
           <Spinner size="md" />
         </div>
       ) : (
-        <Card className="overflow-hidden border border-slate-200 rounded-2xl shadow-xs">
-          <div className="overflow-x-auto">
+        <Card className="overflow-hidden border border-slate-200/90 rounded-2xl shadow-xs">
+          {/* Mobile Cards View (Visible on < md) */}
+          <div className="md:hidden divide-y divide-slate-100">
+            {workOrders.map((wo) => {
+              const sBadge = STATUS_BADGE[wo.status] || STATUS_BADGE.OPEN;
+              return (
+                <div key={wo.id} className="p-4 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-brand-700 text-xs bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
+                      {wo.work_order_code}
+                    </span>
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${sBadge.bg}`}>
+                      {sBadge.label}
+                    </span>
+                  </div>
+
+                  <h4 className="font-bold text-slate-900 text-sm">
+                    {wo.title}
+                  </h4>
+
+                  <div className="text-xs text-slate-500 space-y-1 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <p className="font-semibold text-slate-700">
+                      {wo.device_name} ({wo.device_code}) • {wo.room_name}
+                    </p>
+                    <div className="flex items-center justify-between pt-1">
+                      <span>KTV: <strong className="text-slate-800">{wo.assigned_technician_name || 'Chưa phân công'}</strong></span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] ${PRIORITY_BADGE[wo.priority] || PRIORITY_BADGE.MEDIUM}`}>
+                        {wo.priority}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    {wo.status === 'ASSIGNED' && (user?.role === 'TECHNICIAN' || user?.role === 'ADMIN') && (
+                      <Button size="sm" variant="primary" icon={Play} onClick={() => handleStart(wo.id)} className="flex-1 text-xs py-1.5 font-bold">
+                        Bắt đầu
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      icon={Eye}
+                      onClick={() => navigate(`/devices/${wo.device_id}`)}
+                      className="flex-1 text-xs py-1.5 font-semibold"
+                    >
+                      Xem Thiết Bị
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+            {workOrders.length === 0 && (
+              <div className="p-8 text-center text-xs text-slate-400">
+                Không tìm thấy lệnh công tác nào.
+              </div>
+            )}
+          </div>
+
+          {/* Desktop Table View (Hidden on < md) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-600 uppercase font-bold border-b border-slate-200">
+              <thead className="bg-slate-50/80 text-slate-600 uppercase font-bold border-b border-slate-200/90 text-[11px]">
                 <tr>
-                  <th className="p-3.5">Mã Lệnh</th>
+                  <th className="p-3.5 px-4">Mã Lệnh</th>
                   <th className="p-3.5">Tiêu đề & Thiết bị</th>
                   <th className="p-3.5">Phân loại</th>
                   <th className="p-3.5">Ưu tiên</th>
                   <th className="p-3.5">Trạng thái</th>
                   <th className="p-3.5">Kỹ thuật viên</th>
                   <th className="p-3.5">Ngày tạo</th>
-                  <th className="p-3.5 text-right">Thao tác</th>
+                  <th className="p-3.5 px-4 text-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -208,8 +266,8 @@ export const WorkOrderListPage = () => {
                   const sBadge = STATUS_BADGE[wo.status] || STATUS_BADGE.OPEN;
 
                   return (
-                    <tr key={wo.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="p-3.5 font-mono font-bold text-brand-700 whitespace-nowrap">
+                    <tr key={wo.id} className="hover:bg-slate-50/90 transition-colors">
+                      <td className="p-3.5 px-4 font-mono font-bold text-brand-700 whitespace-nowrap">
                         {wo.work_order_code}
                       </td>
                       <td className="p-3.5">
@@ -244,7 +302,7 @@ export const WorkOrderListPage = () => {
                       <td className="p-3.5 whitespace-nowrap text-slate-500 font-mono">
                         {new Date(wo.created_at).toLocaleDateString('vi-VN')}
                       </td>
-                      <td className="p-3.5 text-right whitespace-nowrap space-x-1.5">
+                      <td className="p-3.5 px-4 text-right whitespace-nowrap space-x-1.5">
                         {wo.status === 'ASSIGNED' && (user?.role === 'TECHNICIAN' || user?.role === 'ADMIN') && (
                           <Button size="xs" variant="primary" icon={Play} onClick={() => handleStart(wo.id)}>
                             Bắt đầu

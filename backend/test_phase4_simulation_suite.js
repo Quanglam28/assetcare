@@ -212,9 +212,15 @@ async function runPhase4Tests() {
   });
   const loginData = await loginRes.json();
   const token = loginData.data?.token || loginData.token;
+  const cookie = loginRes.headers.get('set-cookie')?.split(';')[0];
+  const authHeaders = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(cookie ? { Cookie: cookie } : {}),
+  };
 
   const simGetRes = await fetch(`${BASE_URL}/api/devices/1/simulation?days=30`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: authHeaders,
   });
   const simGetJson = await simGetRes.json();
   assert.strictEqual(simGetRes.status, 200);
@@ -229,10 +235,7 @@ async function runPhase4Tests() {
   console.log('▶ TEST 23: REST API POST Simulation');
   const simPostRes = await fetch(`${BASE_URL}/api/devices/1/simulation`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers: authHeaders,
     body: JSON.stringify({ days: 60, scenario: 'MAINTAIN_NOW' }),
   });
   const simPostJson = await simPostRes.json();
@@ -245,8 +248,8 @@ async function runPhase4Tests() {
   // -------------------------------------------------------------------------
   console.log('▶ TEST 24: REST API Top Degrading & Alerts');
   const [topRes, alertRes] = await Promise.all([
-    fetch(`${BASE_URL}/api/analytics/predictive/top-degrading?days=30&limit=5`, { headers: { Authorization: `Bearer ${token}` } }),
-    fetch(`${BASE_URL}/api/analytics/predictive/alerts?days=30`, { headers: { Authorization: `Bearer ${token}` } }),
+    fetch(`${BASE_URL}/api/analytics/predictive/top-degrading?days=30&limit=5`, { headers: authHeaders }),
+    fetch(`${BASE_URL}/api/analytics/predictive/alerts?days=30`, { headers: authHeaders }),
   ]);
   const topJson = await topRes.json();
   const alertJson = await alertRes.json();
@@ -301,6 +304,7 @@ async function runPhase4Tests() {
   console.log('========================================================================');
   console.log('🎉 TOÀN BỘ 27/27 BÀI KIỂM THỬ PHASE 4 ĐẠT 100% HOÀN HẢO!');
   console.log('========================================================================\n');
+  await pool.end();
 }
 
 runPhase4Tests().catch((err) => {

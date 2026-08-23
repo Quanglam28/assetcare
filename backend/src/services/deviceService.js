@@ -1,3 +1,4 @@
+const { pool } = require('../config/db');
 const deviceRepository = require('../repositories/deviceRepository');
 const buildingRepository = require('../repositories/buildingRepository');
 const locationRepository = require('../repositories/locationRepository');
@@ -456,6 +457,253 @@ class DeviceService {
       recommendation,
       deductions,
       lastEvaluatedAt: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Lấy Timeline lịch sử hoạt động toàn diện của thiết bị (Device Activity Timeline)
+   * Tổng hợp đa nguồn: Thiết bị tạo, Báo hỏng, Phân công, Lệnh công tác, Xử lý, Hoàn thành, Nghiệm thu, Audit
+   */
+  async getDeviceTimeline(deviceId, query = {}) {
+    const device = await deviceRepository.findById(deviceId);
+    if (!device) {
+      throw new NotFoundError(`Không tìm thấy thiết bị với ID [${deviceId}]`);
+    }
+
+    const page = Math.max(1, parseInt(query.page, 10) || 1);
+    const limit = Math.max(1, Math.min(100, parseInt(query.limit, 10) || 20));
+    const filterType = query.type || null;
+
+    const events = [];
+
+    // 1. Sự kiện Thiết bị được khởi tạo vào hệ thống
+    const createdTimestamp = device.created_at || device.purchase_date;
+    if (createdTimestamp) {
+      events.push({
+        id: `dev-created-${device.id}`,
+        eventType: 'DEVICE_CREATED',
+        category: 'LIFECYCLE',
+        title: `Tiếp nhận thiết bị [${device.code}]`,
+        description: `Thiết bị "${device.name}" được khởi tạo vào hệ thống. Model: ${device.model || 'N/A'}, Serial: ${device.serial_number || 'N/A'}.`,
+        timestamp: createdTimestamp,
+        actor: { name: 'Hệ thống', role: 'SYSTEM' },
+        status: device.status,
+        badgeColor: 'emerald',
+        cost: device.purchase_price ? Number(device.purchase_price) : 0,
+        metadata: {
+          purchaseDate: device.purchase_date,
+          warrantyEnd: device.warranty_end,
+          purchasePrice: device.purchase_price,
+          roomName: device.room_name,
+          buildingName: device.building_name,
+        },
+      });
+    }
+
+    // 2. Lấy các sự kiện từ Phiếu báo hỏng (Maintenance Requests)
+    const [requestRows] = await pool.execute(`
+      SELECT mr.id, mr.code, mr.title, mr.description, mr.priority, mr.status,
+             mr.created_at, mr.assigned_at, mr.started_at, mr.completed_at, mr.closed_at,
+             mr.actual_cost, mr.root_cause, mr.resolution,
+             u.full_name AS reporter_name, r.code AS reporter_role,
+             tech.full_name AS technician_name, tech_r.code AS technician_role
+      FROM maintenance_requests mr
+      JOIN users u ON mr.reporter_id = u.id
+      JOIN roles r ON u.role_id = r.id
+      LEFT JOIN users tech ON mr.technician_id = tech.id
+      LEFT JOIN roles tech_r ON tech.role_id = tech_r.id
+      WHERE mr.device_id = ?
+    `, [deviceId]);
+
+    for (const mr of requestRows) {
+      // 2.1. Sự kiện báo hỏng
+      events.push({
+        id: `mr-reported-${mr.id}`,
+        eventType: 'INCIDENT_REPORTED',
+        category: 'INCIDENT',
+        title: `Báo hỏng sự cố [${mr.code}]`,
+        description: mr.title + (mr.description ? ` - ${mr.description}` : ''),
+        timestamp: mr.created_at,
+        actor: { name: mr.reporter_name, role: mr.reporter_role },
+        status: 'PENDING',
+        priority: mr.priority,
+        badgeColor: 'rose',
+        metadata: { requestId: mr.id, requestCode: mr.code, priority: mr.priority },
+      });
+
+      // 2.2. Sự kiện phân công KTV
+      if (mr.assigned_at && mr.technician_name) {
+        events.push({
+          id: `mr-assigned-${mr.id}`,
+          eventType: 'INCIDENT_ASSIGNED',
+          category: 'MAINTENANCE',
+          title: `Phân công Kỹ thuật viên [${mr.code}]`,
+          description: `Giao xử lý cho Kỹ thuật viên: ${mr.technician_name}.`,
+          timestamp: mr.assigned_at,
+          actor: { name: 'Ban Quản Lý', role: 'MANAGER' },
+          status: 'ASSIGNED',
+          badgeColor: 'sky',
+          metadata: { requestId: mr.id, requestCode: mr.code, technician: mr.technician_name },
+        });
+      }
+
+      // 2.3. Sự kiện bắt đầu xử lý
+      if (mr.started_at) {
+        events.push({
+          id: `mr-started-${mr.id}`,
+          eventType: 'MAINTENANCE_STARTED',
+          category: 'MAINTENANCE',
+          title: `Bắt đầu sửa chữa [${mr.code}]`,
+          description: `KTV ${mr.technician_name || ''} đã tiếp nhận tại hiện trường và tiến hành kiểm tra sửa chữa.`,
+          timestamp: mr.started_at,
+          actor: { name: mr.technician_name || 'Kỹ thuật viên', role: mr.technician_role || 'TECHNICIAN' },
+          status: 'IN_PROGRESS',
+          badgeColor: 'blue',
+          metadata: { requestId: mr.id, requestCode: mr.code },
+        });
+      }
+
+      // 2.4. Sự kiện hoàn tất sửa chữa
+      if (mr.completed_at) {
+        events.push({
+          id: `mr-completed-${mr.id}`,
+          eventType: 'MAINTENANCE_COMPLETED',
+          category: 'MAINTENANCE',
+          title: `Hoàn tất sửa chữa [${mr.code}]`,
+          description: (mr.resolution ? `Giải pháp: ${mr.resolution}. ` : '') + (mr.root_cause ? `Nguyên nhân: ${mr.root_cause}.` : ''),
+          timestamp: mr.completed_at,
+          actor: { name: mr.technician_name || 'Kỹ thuật viên', role: mr.technician_role || 'TECHNICIAN' },
+          status: 'COMPLETED',
+          badgeColor: 'indigo',
+          cost: mr.actual_cost ? Number(mr.actual_cost) : 0,
+          metadata: { requestId: mr.id, requestCode: mr.code, actualCost: mr.actual_cost, rootCause: mr.root_cause, resolution: mr.resolution },
+        });
+      }
+
+      // 2.5. Sự kiện nghiệm thu và đóng phiếu
+      if (mr.closed_at) {
+        events.push({
+          id: `mr-closed-${mr.id}`,
+          eventType: 'USER_ACCEPTED',
+          category: 'MAINTENANCE',
+          title: `Nghiệm thu đạt & Đóng phiếu [${mr.code}]`,
+          description: `Người báo (${mr.reporter_name}) đã kiểm tra hiện trường, xác nhận thiết bị hoạt động tốt và đóng phiếu thành công.`,
+          timestamp: mr.closed_at,
+          actor: { name: mr.reporter_name, role: mr.reporter_role },
+          status: 'CLOSED',
+          badgeColor: 'emerald',
+          metadata: { requestId: mr.id, requestCode: mr.code },
+        });
+      }
+    }
+
+    // 3. Lấy các sự kiện Lệnh công tác (Maintenance Work Orders)
+    const [workOrderRows] = await pool.execute(`
+      SELECT mwo.id, mwo.work_order_code, mwo.title, mwo.description, mwo.status, mwo.priority,
+             mwo.created_at, mwo.scheduled_at, mwo.actual_cost,
+             u.full_name AS technician_name, r.code AS technician_role
+      FROM maintenance_work_orders mwo
+      LEFT JOIN users u ON mwo.assigned_to = u.id
+      LEFT JOIN roles r ON u.role_id = r.id
+      WHERE mwo.device_id = ?
+    `, [deviceId]);
+
+    for (const wo of workOrderRows) {
+      events.push({
+        id: `wo-created-${wo.id}`,
+        eventType: 'WORK_ORDER_CREATED',
+        category: 'WORK_ORDER',
+        title: `Phát hành Lệnh công tác [${wo.work_order_code}]`,
+        description: `${wo.title} - Phân công: ${wo.technician_name || 'Chưa chỉ định'}.`,
+        timestamp: wo.created_at,
+        actor: { name: 'Ban Quản Lý', role: 'MANAGER' },
+        status: wo.status,
+        priority: wo.priority,
+        badgeColor: 'purple',
+        cost: wo.actual_cost ? Number(wo.actual_cost) : 0,
+        metadata: { workOrderId: wo.id, workOrderCode: wo.work_order_code, status: wo.status },
+      });
+    }
+
+    // 4. Lấy các sự kiện chuyển đổi trạng thái đặc biệt từ Maintenance Histories (Waiting part, Resume...)
+    const [historyRows] = await pool.execute(`
+      SELECT mh.id, mh.action, mh.from_status, mh.to_status, mh.notes, mh.cost, mh.created_at,
+             u.full_name AS actor_name, r.code AS actor_role, mr.code AS request_code
+      FROM maintenance_histories mh
+      JOIN maintenance_requests mr ON mh.request_id = mr.id
+      LEFT JOIN users u ON mh.actor_id = u.id
+      LEFT JOIN roles r ON u.role_id = r.id
+      WHERE mr.device_id = ? AND mh.action IN ('WAITING_PART', 'TẠM DỪNG CHỜ LINH KIỆN', 'RESUME', 'TIẾP TỤC XỬ LÝ', 'REOPEN', 'MỞ LẠI YÊU CẦU')
+    `, [deviceId]);
+
+    for (const h of historyRows) {
+      const isWait = h.action.includes('WAITING_PART') || h.action.includes('TẠM DỪNG');
+      events.push({
+        id: `mh-${h.id}`,
+        eventType: isWait ? 'WAITING_PART' : 'STATUS_CHANGED',
+        category: 'MAINTENANCE',
+        title: isWait ? `Tạm dừng chờ linh kiện [${h.request_code}]` : `${h.action} [${h.request_code}]`,
+        description: h.notes || `Chuyển trạng thái từ ${h.from_status} sang ${h.to_status}.`,
+        timestamp: h.created_at,
+        actor: { name: h.actor_name || 'Hệ thống', role: h.actor_role || 'STAFF' },
+        status: h.to_status,
+        badgeColor: isWait ? 'amber' : 'blue',
+        metadata: { historyId: h.id, requestCode: h.request_code, fromStatus: h.from_status, toStatus: h.to_status },
+      });
+    }
+
+    // 5. Lấy các sự kiện thay đổi trạng thái từ Audit Logs
+    const [auditRows] = await pool.execute(`
+      SELECT al.id, al.action, al.old_values, al.new_values, al.created_at,
+             u.full_name AS actor_name, r.code AS actor_role
+      FROM audit_logs al
+      LEFT JOIN users u ON al.user_id = u.id
+      LEFT JOIN roles r ON u.role_id = r.id
+      WHERE al.entity_type = 'DEVICE' AND al.entity_id = ? AND al.action IN ('UPDATE_STATUS', 'UPDATE_DEVICE')
+    `, [deviceId]);
+
+    for (const a of auditRows) {
+      let desc = 'Cập nhật thông tin hồ sơ thiết bị';
+      if (a.action === 'UPDATE_STATUS') {
+        desc = `Thay đổi trạng thái vận hành thiết bị`;
+      }
+      events.push({
+        id: `audit-${a.id}`,
+        eventType: 'STATUS_CHANGED',
+        category: 'AUDIT',
+        title: `Cập nhật hồ sơ thiết bị`,
+        description: desc,
+        timestamp: a.created_at,
+        actor: { name: a.actor_name || 'Quản trị viên', role: a.actor_role || 'ADMIN' },
+        status: device.status,
+        badgeColor: 'slate',
+        metadata: { auditId: a.id, action: a.action },
+      });
+    }
+
+    // Lọc theo loại nếu có yêu cầu
+    let filteredEvents = events;
+    if (filterType && filterType !== 'ALL') {
+      filteredEvents = events.filter(e => e.category === filterType || e.eventType === filterType);
+    }
+
+    // Sắp xếp giảm dần theo mốc thời gian thực tế
+    filteredEvents.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    const total = filteredEvents.length;
+    const totalPages = Math.ceil(total / limit) || 1;
+    const startIndex = (page - 1) * limit;
+    const pagedTimeline = filteredEvents.slice(startIndex, startIndex + limit);
+
+    return {
+      deviceId: device.id,
+      deviceCode: device.code,
+      deviceName: device.name,
+      page,
+      limit,
+      total,
+      totalPages,
+      timeline: pagedTimeline,
     };
   }
 }

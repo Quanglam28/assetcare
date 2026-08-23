@@ -196,6 +196,30 @@ class DeviceController {
       next(error);
     }
   }
+
+  /**
+   * Lấy Timeline lịch sử hoạt động của thiết bị (Device Activity Timeline)
+   * GET /api/devices/:id/timeline
+   */
+  async getDeviceTimeline(req, res, next) {
+    try {
+      const { id } = req.params;
+      const data = await deviceService.getDeviceTimeline(id, req.query);
+      return ApiResponse.paginate(
+        res,
+        data.timeline,
+        {
+          page: data.page,
+          limit: data.limit,
+          total: data.total,
+          totalPages: data.totalPages,
+        },
+        'Lấy lịch sử hoạt động thiết bị thành công'
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new DeviceController();

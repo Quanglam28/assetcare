@@ -72,6 +72,13 @@ export const deviceService = {
   },
 
   /**
+   * Lấy Timeline lịch sử hoạt động toàn diện của thiết bị (Device Activity Timeline)
+   */
+  async getDeviceTimeline(id, params = {}) {
+    return api.get(`/devices/${id}/timeline`, { params });
+  },
+
+  /**
    * Lấy danh mục phục vụ bộ lọc và form thêm/sửa thiết bị
    */
   async getMasterData() {

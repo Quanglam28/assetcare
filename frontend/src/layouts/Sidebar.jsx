@@ -72,21 +72,21 @@ export const Sidebar = ({ isCollapsed, isMobileOpen, onCloseMobile }) => {
       {/* Sidebar container */}
       <aside
         className={clsx(
-          'fixed inset-y-0 left-0 z-40 flex flex-col border-r border-slate-200/80 bg-slate-900 text-slate-300 transition-all duration-300 ease-in-out lg:static',
+          'fixed inset-y-0 left-0 z-40 flex flex-col border-r border-slate-800 bg-slate-950 text-slate-300 transition-all duration-300 ease-in-out lg:static shadow-2xl lg:shadow-none',
           isCollapsed ? 'w-20' : 'w-64',
           isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
       >
         {/* Brand logo header */}
-        <div className="flex h-16 items-center justify-between px-4 border-b border-slate-800">
+        <div className="flex h-16 items-center justify-between px-4 border-b border-slate-800/80 bg-slate-950">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="flex h-10 w-10 min-w-10 items-center justify-center rounded-xl bg-brand-600 text-white font-bold shadow-lg shadow-brand-600/30">
-              <QrCode className="h-6 w-6" />
+            <div className="flex h-10 w-10 min-w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white font-bold shadow-lg shadow-brand-600/30 ring-1 ring-white/20">
+              <QrCode className="h-5 w-5" />
             </div>
             {!isCollapsed && (
               <div className="truncate">
-                <span className="font-bold text-white tracking-wide text-sm">UTT ASSETCARE</span>
-                <span className="block text-[10px] text-brand-400 font-medium tracking-tight">ĐH Công Nghệ GTVT</span>
+                <span className="font-extrabold text-white tracking-wide text-sm block">UTT ASSETCARE</span>
+                <span className="block text-[10px] text-brand-400 font-semibold tracking-tight">ĐH Công Nghệ GTVT</span>
               </div>
             )}
           </div>
@@ -101,7 +101,7 @@ export const Sidebar = ({ isCollapsed, isMobileOpen, onCloseMobile }) => {
             return (
               <div key={groupIdx}>
                 {!isCollapsed && (
-                  <h4 className="px-3 text-[11px] font-semibold text-slate-500 tracking-wider uppercase mb-2">
+                  <h4 className="px-3 text-[10px] font-bold text-slate-500 tracking-wider uppercase mb-2">
                     {group.title}
                   </h4>
                 )}
@@ -113,10 +113,10 @@ export const Sidebar = ({ isCollapsed, isMobileOpen, onCloseMobile }) => {
                         onClick={onCloseMobile}
                         className={({ isActive }) =>
                           clsx(
-                            'flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all group',
+                            'flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all duration-150 group relative',
                             isActive
-                              ? 'bg-brand-600 text-white font-semibold shadow-md shadow-brand-600/20'
-                              : 'text-slate-400 hover:bg-slate-800/80 hover:text-white',
+                              ? 'bg-brand-600 text-white shadow-md shadow-brand-600/25 ring-1 ring-brand-400/30'
+                              : 'text-slate-400 hover:bg-slate-900 hover:text-white',
                             isCollapsed && 'justify-center px-2'
                           )
                         }
@@ -135,12 +135,15 @@ export const Sidebar = ({ isCollapsed, isMobileOpen, onCloseMobile }) => {
 
         {/* User Info footer in Sidebar */}
         {!isCollapsed && (
-          <div className="p-3 border-t border-slate-800 bg-slate-950/40">
-            <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg bg-slate-800/60">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></div>
-              <p className="text-[11px] text-slate-400 font-medium truncate">
-                Phiên bản v1.0 • Đại học
-              </p>
+          <div className="p-3.5 border-t border-slate-800/80 bg-slate-900/60">
+            <div className="flex items-center justify-between px-2 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div className="flex items-center gap-2 truncate">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 ring-4 ring-emerald-950 shrink-0" />
+                <span className="text-[11px] text-slate-300 font-medium truncate">
+                  {user?.role || 'SYSTEM'}
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-400 font-mono">v1.2</span>
             </div>
           </div>
         )}

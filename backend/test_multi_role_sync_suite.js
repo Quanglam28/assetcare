@@ -50,8 +50,18 @@ async function runMultiRoleSyncSuite() {
   assert.strictEqual(userTuanAuth.user.role, 'USER');
   console.log('  ✅ TEST 1 PASS: Đăng nhập thành công và cấp quyền chuẩn 4 Roles.\n');
 
-  // 2. USER (user_ha) quét QR và tạo phiếu báo hỏng thiết bị 1
-  console.log('▶ TEST 2: USER (user_ha) gửi phiếu báo hỏng thiết bị ID: 1 vào CSDL TiDB Cloud/MySQL');
+  // 2. USER (user_ha) quét QR và tạo phiếu báo hỏng thiết bị 2
+  console.log('▶ TEST 2: USER (user_ha) gửi phiếu báo hỏng thiết bị ID: 2 vào CSDL TiDB Cloud/MySQL');
+  const testTitle = `Thiết bị phòng 302 bị mờ [Sync-Test ${Date.now()}]`;
+  const payload = {
+    deviceId: 2,
+    title: testTitle,
+    incidentType: 'HARDWARE',
+    priority: 'URGENT',
+    description: 'Khi bật thiết bị thì đèn chớp 3 lần rồi tự tắt, quạt kêu to bất thường.',
+    contactPhone: '0912345678',
+    contactEmail: 'thuha.gv@utt.edu.vn',
+  };
   const createRes = await fetch(`${baseUrl}/api/maintenance`, {
     method: 'POST',
     headers: {
@@ -59,22 +69,14 @@ async function runMultiRoleSyncSuite() {
       Authorization: `Bearer ${userHaAuth.token}`,
       'X-Requested-With': 'XMLHttpRequest',
     },
-    body: JSON.stringify({
-      deviceId: 1,
-      title: 'Máy chiếu Laser phòng 302 bị mờ và nhấp nháy đèn nguồn',
-      incidentType: 'HARDWARE',
-      priority: 'URGENT',
-      description: 'Khi bật máy chiếu thì bóng đèn chớp 3 lần rồi tự tắt, quạt kêu to bất thường.',
-      contactPhone: '0912345678',
-      contactEmail: 'thuha.gv@utt.edu.vn',
-    }),
+    body: JSON.stringify(payload),
   });
   const createData = await createRes.json();
   assert.strictEqual(createRes.status, 201);
   assert.strictEqual(createData.success, true);
   const createdTicket = createData.data;
   assert.ok(createdTicket.id > 0);
-  assert.strictEqual(createdTicket.device_id, 1);
+  assert.strictEqual(createdTicket.device_id, 2);
   assert.strictEqual(createdTicket.reporter_id, userHaAuth.user.id);
   assert.strictEqual(createdTicket.status, 'PENDING');
   assert.strictEqual(createdTicket.priority, 'URGENT');
@@ -90,13 +92,7 @@ async function runMultiRoleSyncSuite() {
       Authorization: `Bearer ${userHaAuth.token}`,
       'X-Requested-With': 'XMLHttpRequest',
     },
-    body: JSON.stringify({
-      deviceId: 1,
-      title: 'Máy chiếu Laser phòng 302 bị mờ và nhấp nháy đèn nguồn',
-      incidentType: 'HARDWARE',
-      priority: 'URGENT',
-      description: 'Khi bật máy chiếu thì bóng đèn chớp 3 lần rồi tự tắt, quạt kêu to bất thường.',
-    }),
+    body: JSON.stringify(payload),
   });
   const dupeData = await dupeRes.json();
   assert.strictEqual(dupeData.data.id, createdTicket.id, 'Phải trả về phiếu hiện có thay vì tạo bản ghi rác trùng lặp');
@@ -104,7 +100,7 @@ async function runMultiRoleSyncSuite() {
 
   // 4. ADMIN nhìn thấy ngay phiếu mới trên Dashboard & Maintenance List
   console.log('▶ TEST 4: ADMIN truy vấn danh sách phiếu và thấy ngay phiếu PENDING mới tạo');
-  const adminListRes = await fetch(`${baseUrl}/api/maintenance?status=PENDING`, {
+  const adminListRes = await fetch(`${baseUrl}/api/maintenance?status=PENDING&limit=100`, {
     headers: { Authorization: `Bearer ${adminAuth.token}` },
   });
   const adminListData = await adminListRes.json();
@@ -117,7 +113,7 @@ async function runMultiRoleSyncSuite() {
 
   // 5. MANAGER nhìn thấy phiếu theo quyền quản lý
   console.log('▶ TEST 5: MANAGER truy vấn danh sách phiếu bảo trì');
-  const managerListRes = await fetch(`${baseUrl}/api/maintenance?status=PENDING`, {
+  const managerListRes = await fetch(`${baseUrl}/api/maintenance?status=PENDING&limit=100`, {
     headers: { Authorization: `Bearer ${managerAuth.token}` },
   });
   const managerListData = await managerListRes.json();
@@ -169,7 +165,7 @@ async function runMultiRoleSyncSuite() {
 
   // 8. TECHNICIAN (tech_nam) nhìn thấy phiếu trong hàng đợi của mình
   console.log('▶ TEST 8: KTV (tech_nam) kiểm tra danh sách công việc được giao (assignedToMe)');
-  const techQueueRes = await fetch(`${baseUrl}/api/maintenance?assignedToMe=true`, {
+  const techQueueRes = await fetch(`${baseUrl}/api/maintenance?assignedToMe=true&limit=100`, {
     headers: { Authorization: `Bearer ${techNamAuth.token}` },
   });
   const techQueueData = await techQueueRes.json();
@@ -365,6 +361,7 @@ async function runMultiRoleSyncSuite() {
   console.log('========================================================================\n');
 
   server.close();
+  await pool.end();
 }
 
 runMultiRoleSyncSuite().catch((err) => {

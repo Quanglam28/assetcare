@@ -616,6 +616,7 @@ async function runTests() {
   console.log(`========================================================================\n`);
 
   await after.fn();
+  process.exit(0);
 }
 
 runTests().catch((err) => {

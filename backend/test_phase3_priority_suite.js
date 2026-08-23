@@ -237,10 +237,16 @@ async function runPhase3Tests() {
   });
   const loginData = await loginRes.json();
   const token = loginData.data?.token || loginData.token;
+  const cookie = loginRes.headers.get('set-cookie')?.split(';')[0];
+  const authHeaders = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(cookie ? { Cookie: cookie } : {}),
+  };
 
   // 1. Test Priority endpoint
   const prioRes = await fetch(`${BASE_URL}/api/devices/1/priority`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: authHeaders,
   });
   const prioJson = await prioRes.json();
   assert.strictEqual(prioRes.status, 200);
@@ -249,7 +255,7 @@ async function runPhase3Tests() {
 
   // 2. Test Work Orders list
   const woRes = await fetch(`${BASE_URL}/api/work-orders`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: authHeaders,
   });
   const woJson = await woRes.json();
   assert.strictEqual(woRes.status, 200);
@@ -257,7 +263,7 @@ async function runPhase3Tests() {
 
   // 3. Test Risk Matrix API
   const matrixRes = await fetch(`${BASE_URL}/api/analytics/risk-matrix`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: authHeaders,
   });
   const matrixJson = await matrixRes.json();
   assert.strictEqual(matrixRes.status, 200);
@@ -280,6 +286,7 @@ async function runPhase3Tests() {
   console.log('========================================================================');
   console.log('🎉 TOÀN BỘ 20/20 BÀI KIỂM THỬ PHASE 3 ĐẠT 100% HOÀN HẢO!');
   console.log('========================================================================\n');
+  await pool.end();
 }
 
 runPhase3Tests().catch(err => {

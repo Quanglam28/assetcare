@@ -1,6 +1,7 @@
 const assert = require('assert');
 const failureRiskService = require('./src/services/failureRiskService');
 const config = require('./src/config/failureRiskConfig');
+const { pool } = require('./src/config/db');
 
 async function runPhase2RiskTests() {
   console.log('========================================================================');
@@ -213,6 +214,7 @@ async function runPhase2RiskTests() {
   console.log('========================================================================');
   console.log('🎉 TOÀN BỘ 20/20 BÀI KIỂM THỬ PHASE 2 FAILURE RISK SCORE ENGINE ĐẠT 100%!');
   console.log('========================================================================\n');
+  await pool.end();
 }
 
 runPhase2RiskTests().catch(err => {

@@ -123,6 +123,7 @@ async function runQrAuthFlowTests() {
   console.log('========================================================================');
   console.log('🎉 TOÀN BỘ CÁC BÀI KIỂM THỬ FLOW QR → AUTH → DEVICE ĐỀU ĐẠT 100%!');
   console.log('========================================================================\n');
+  process.exit(0);
 }
 
 runQrAuthFlowTests().catch((err) => {

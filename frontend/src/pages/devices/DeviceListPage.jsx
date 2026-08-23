@@ -361,11 +361,11 @@ export const DeviceListPage = () => {
         </form>
       </Card>
 
-      {/* Devices Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      {/* Devices Table & Mobile Cards */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         {loading ? (
-          <div className="p-4">
-            <SkeletonTable rows={5} cols={8} />
+          <div className="p-6">
+            <SkeletonTable rows={6} cols={7} />
           </div>
         ) : devices.length === 0 ? (
           <EmptyState
@@ -376,166 +376,280 @@ export const DeviceListPage = () => {
             onAction={handleResetFilters}
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                  <th className="py-3.5 px-4">Mã & Tên Thiết Bị</th>
-                  <th className="py-3.5 px-4">Vị Trí</th>
-                  <th className="py-3.5 px-4">Trạng Thái</th>
-                  <th className="py-3.5 px-4">Sức Khỏe (Health)</th>
-                  <th className="py-3.5 px-4">Nguy Cơ (Risk)</th>
-                  <th className="py-3.5 px-4">Khuyến Nghị</th>
-                  <th className="py-3.5 px-4 text-right">Thao Tác</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {devices.map((d) => {
-                  const statusConf = DEVICE_STATUS_CONFIG[d.status] || {
-                    label: d.status,
-                    bg: 'bg-slate-100 text-slate-700 border-slate-200',
-                  };
+          <>
+            {/* 1. Mobile Cards View (Visible on < md) */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {devices.map((d) => {
+                const statusConf = DEVICE_STATUS_CONFIG[d.status] || {
+                  label: d.status,
+                  bg: 'bg-slate-100 text-slate-700 border-slate-200',
+                };
+                const hScore = Math.round(Number(d.health_score) || 100);
+                const hStatus = d.health_status || 'GOOD';
+                const hConf = HEALTH_STATUS_CONFIG[hStatus] || HEALTH_STATUS_CONFIG.GOOD;
+                const rScore = Math.round(Number(d.risk_score) || 0);
+                const rLevel = d.risk_level || 'VERY_LOW';
+                const rConf = RISK_LEVEL_CONFIG[rLevel] || RISK_LEVEL_CONFIG.VERY_LOW;
+                const recAction = d.recommendation_action || 'MONITOR_ASSET';
+                const recConf = RECOMMENDATION_ACTION_CONFIG[recAction] || RECOMMENDATION_ACTION_CONFIG.MONITOR_ASSET;
 
-                  const hScore = Math.round(Number(d.health_score) || 100);
-                  const hStatus = d.health_status || 'GOOD';
-                  const hConf = HEALTH_STATUS_CONFIG[hStatus] || HEALTH_STATUS_CONFIG.GOOD;
-
-                  const rScore = Math.round(Number(d.risk_score) || 0);
-                  const rLevel = d.risk_level || 'VERY_LOW';
-                  const rConf = RISK_LEVEL_CONFIG[rLevel] || RISK_LEVEL_CONFIG.VERY_LOW;
-
-                  const recAction = d.recommendation_action || 'MONITOR_ASSET';
-                  const recConf = RECOMMENDATION_ACTION_CONFIG[recAction] || RECOMMENDATION_ACTION_CONFIG.MONITOR_ASSET;
-
-                  return (
-                    <tr key={d.id} className="hover:bg-slate-50/80 transition-colors">
-                      {/* Code & Name */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-2.5">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedDeviceForPrint(d)}
-                            className="p-1.5 rounded-lg bg-brand-50 text-brand-600 hover:bg-brand-100 transition-colors"
-                            title="Xem / In mã QR nhãn dán"
+                return (
+                  <div key={d.id} className="p-4 space-y-3 hover:bg-slate-50/60 transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDeviceForPrint(d)}
+                          className="p-2 rounded-xl bg-brand-50 text-brand-600 border border-brand-200/80 shrink-0"
+                          title="Mã QR"
+                        >
+                          <QrCode className="w-4 h-4" />
+                        </button>
+                        <div>
+                          <h4
+                            onClick={() => navigate(`/devices/${d.id}`)}
+                            className="font-bold text-slate-900 text-sm hover:text-brand-600 cursor-pointer line-clamp-1"
                           >
-                            <QrCode className="w-4 h-4" />
-                          </button>
-                          <div>
-                            <span
-                              onClick={() => navigate(`/devices/${d.id}`)}
-                              className="font-bold text-slate-900 hover:text-brand-600 cursor-pointer block leading-snug"
+                            {d.name}
+                          </h4>
+                          <span className="font-mono text-xs text-slate-400 block">{d.code}</span>
+                        </div>
+                      </div>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${statusConf.bg}`}>
+                        {statusConf.label}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-slate-600 bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">
+                      <span className="flex items-center gap-1 font-medium truncate">
+                        <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        {d.room_name} ({d.building_code})
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-500 shrink-0">
+                        {d.device_type_name || 'Thiết bị'}
+                      </span>
+                    </div>
+
+                    {/* Scores row */}
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="p-2 rounded-xl border border-slate-100 bg-white flex items-center justify-between">
+                        <span className="text-[11px] text-slate-500">Sức khỏe:</span>
+                        <span className={`font-mono font-bold px-2 py-0.5 rounded-md text-xs ${
+                          hScore >= 80 ? 'bg-emerald-50 text-emerald-800' :
+                          hScore >= 60 ? 'bg-amber-50 text-amber-800' : 'bg-rose-50 text-rose-800'
+                        }`}>
+                          {hScore}đ
+                        </span>
+                      </div>
+                      <div className="p-2 rounded-xl border border-slate-100 bg-white flex items-center justify-between">
+                        <span className="text-[11px] text-slate-500">Rủi ro:</span>
+                        <span className={`font-mono font-bold px-2 py-0.5 rounded-md text-xs ${
+                          rScore > 60 ? 'bg-rose-50 text-rose-800' :
+                          rScore > 40 ? 'bg-orange-50 text-orange-800' : 'bg-emerald-50 text-emerald-800'
+                        }`}>
+                          {rScore}%
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action buttons on mobile */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 text-xs py-1.5 font-bold"
+                        onClick={() => navigate(`/devices/${d.id}`)}
+                      >
+                        Chi Tiết
+                      </Button>
+                      {(isAdmin || isManager) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs py-1.5 px-3"
+                          onClick={() => navigate(`/devices/${d.id}/edit`)}
+                        >
+                          <Edit2 className="w-3.5 h-3.5 text-slate-600" />
+                        </Button>
+                      )}
+                      {isAdmin && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs py-1.5 px-3 text-rose-600 border-rose-200 hover:bg-rose-50"
+                          onClick={() => setDeviceToDelete(d)}
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 2. Desktop Table View (Hidden on < md) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200/90 bg-slate-50/80 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    <th className="py-3.5 px-5">Mã & Tên Thiết Bị</th>
+                    <th className="py-3.5 px-4">Vị Trí</th>
+                    <th className="py-3.5 px-4">Trạng Thái</th>
+                    <th className="py-3.5 px-4">Sức Khỏe (Health)</th>
+                    <th className="py-3.5 px-4">Nguy Cơ (Risk)</th>
+                    <th className="py-3.5 px-4">Khuyến Nghị</th>
+                    <th className="py-3.5 px-5 text-right">Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {devices.map((d) => {
+                    const statusConf = DEVICE_STATUS_CONFIG[d.status] || {
+                      label: d.status,
+                      bg: 'bg-slate-100 text-slate-700 border-slate-200',
+                    };
+
+                    const hScore = Math.round(Number(d.health_score) || 100);
+                    const hStatus = d.health_status || 'GOOD';
+                    const hConf = HEALTH_STATUS_CONFIG[hStatus] || HEALTH_STATUS_CONFIG.GOOD;
+
+                    const rScore = Math.round(Number(d.risk_score) || 0);
+                    const rLevel = d.risk_level || 'VERY_LOW';
+                    const rConf = RISK_LEVEL_CONFIG[rLevel] || RISK_LEVEL_CONFIG.VERY_LOW;
+
+                    const recAction = d.recommendation_action || 'MONITOR_ASSET';
+                    const recConf = RECOMMENDATION_ACTION_CONFIG[recAction] || RECOMMENDATION_ACTION_CONFIG.MONITOR_ASSET;
+
+                    return (
+                      <tr key={d.id} className="hover:bg-slate-50/90 transition-colors">
+                        {/* Code & Name */}
+                        <td className="py-3.5 px-5">
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedDeviceForPrint(d)}
+                              className="p-2 rounded-xl bg-brand-50 text-brand-600 border border-brand-200/80 hover:bg-brand-100 transition-colors shrink-0"
+                              title="Xem / In mã QR nhãn dán"
                             >
-                              {d.name}
-                            </span>
-                            <div className="flex items-center gap-2 text-xs text-slate-500 font-mono mt-0.5">
-                              <span>{d.code}</span>
-                              {d.model && <span>• {d.model}</span>}
+                              <QrCode className="w-4 h-4" />
+                            </button>
+                            <div>
+                              <span
+                                onClick={() => navigate(`/devices/${d.id}`)}
+                                className="font-bold text-slate-900 hover:text-brand-600 cursor-pointer block leading-snug tracking-tight"
+                              >
+                                {d.name}
+                              </span>
+                              <div className="flex items-center gap-2 text-xs text-slate-500 font-mono mt-0.5">
+                                <span>{d.code}</span>
+                                {d.model && <span>• {d.model}</span>}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Vị trí */}
-                      <td className="py-3.5 px-4 text-xs">
-                        <div className="flex items-center gap-1.5 font-medium text-slate-800">
-                          <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span>{d.room_name} ({d.building_code})</span>
-                        </div>
-                        <span className="text-[11px] text-slate-400 block mt-0.5">
-                          {d.department_name || 'Toàn trường'}
-                        </span>
-                      </td>
-
-                      {/* Trạng thái máy */}
-                      <td className="py-3.5 px-4">
-                        <Badge className={`${statusConf.bg} text-[11px] font-bold px-2 py-0.5 border`}>
-                          {statusConf.label}
-                        </Badge>
-                      </td>
-
-                      {/* Sức Khỏe (Health Score) */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-2">
-                          <span className={`font-mono font-black text-sm ${
-                            hScore >= 80 ? 'text-emerald-700' :
-                            hScore >= 60 ? 'text-yellow-700' :
-                            hScore >= 40 ? 'text-amber-700' : 'text-rose-700'
-                          }`}>
-                            {hScore}
+                        {/* Vị trí */}
+                        <td className="py-3.5 px-4 text-xs">
+                          <div className="flex items-center gap-1.5 font-semibold text-slate-800">
+                            <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span>{d.room_name} ({d.building_code})</span>
+                          </div>
+                          <span className="text-[11px] text-slate-400 block mt-0.5">
+                            {d.department_name || 'Toàn trường'}
                           </span>
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${hConf.bg}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${hConf.dot}`} />
-                            {hStatus}
-                          </span>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Nguy Cơ Rủi Ro (Failure Risk) */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-2">
-                          <span className={`font-mono font-black text-sm ${
-                            rScore > 60 ? 'text-rose-700' :
-                            rScore > 40 ? 'text-amber-700' : 'text-emerald-700'
-                          }`}>
-                            {rScore}%
+                        {/* Trạng thái máy */}
+                        <td className="py-3.5 px-4">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border ${statusConf.bg}`}>
+                            {statusConf.label}
                           </span>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${rConf.bg}`}>
-                            {rLevel}
+                        </td>
+
+                        {/* Sức Khỏe (Health Score) */}
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-2">
+                            <span className={`font-mono font-black text-sm ${
+                              hScore >= 80 ? 'text-emerald-700' :
+                              hScore >= 60 ? 'text-yellow-700' :
+                              hScore >= 40 ? 'text-amber-700' : 'text-rose-700'
+                            }`}>
+                              {hScore}
+                            </span>
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${hConf.bg}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${hConf.dot}`} />
+                              {hStatus}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Nguy Cơ Rủi Ro (Failure Risk) */}
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-2">
+                            <span className={`font-mono font-black text-sm ${
+                              rScore > 60 ? 'text-rose-700' :
+                              rScore > 40 ? 'text-amber-700' : 'text-emerald-700'
+                            }`}>
+                              {rScore}%
+                            </span>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${rConf.bg}`}>
+                              {rLevel}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Khuyến Nghị Kỹ Thuật */}
+                        <td className="py-3.5 px-4 text-xs">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${recConf.bg}`}>
+                            {recConf.label}
                           </span>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Khuyến Nghị Kỹ Thuật */}
-                      <td className="py-3.5 px-4 text-xs">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold border ${recConf.bg}`}>
-                          {recConf.label}
-                        </span>
-                      </td>
-
-                      {/* Thao tác */}
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => navigate(`/devices/${d.id}`)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-brand-600 hover:bg-slate-100 transition-colors"
-                            title="Xem chi tiết thiết bị & sức khỏe"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          {(isAdmin || isManager) && (
+                        {/* Thao tác */}
+                        <td className="py-3.5 px-5 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
                             <button
                               type="button"
-                              onClick={() => navigate(`/devices/${d.id}/edit`)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 transition-colors"
-                              title="Chỉnh sửa thông tin"
+                              onClick={() => navigate(`/devices/${d.id}`)}
+                              className="p-2 rounded-xl text-slate-500 hover:text-brand-600 hover:bg-brand-50 transition-colors"
+                              title="Xem chi tiết thiết bị & sức khỏe"
                             >
-                              <Edit2 className="w-4 h-4" />
+                              <Eye className="w-4 h-4" />
                             </button>
-                          )}
-                          {isAdmin && (
-                            <button
-                              type="button"
-                              onClick={() => setDeviceToDelete(d)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                              title="Thanh lý / Xóa"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                            {(isAdmin || isManager) && (
+                              <button
+                                type="button"
+                                onClick={() => navigate(`/devices/${d.id}/edit`)}
+                                className="p-2 rounded-xl text-slate-500 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                                title="Chỉnh sửa thông tin"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                            )}
+                            {isAdmin && (
+                              <button
+                                type="button"
+                                onClick={() => setDeviceToDelete(d)}
+                                className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                                title="Thanh lý / Xóa"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
 
         {/* Pagination */}
         {total > 0 && (
-          <div className="border-t border-slate-200 px-4 py-3 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="border-t border-slate-200/90 px-4 sm:px-6 py-3.5 bg-slate-50/60 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="text-xs text-slate-500">
               Hiển thị <strong>{(page - 1) * limit + 1}</strong> đến{' '}
               <strong>{Math.min(page * limit, total)}</strong> trong tổng số <strong>{total}</strong> thiết bị

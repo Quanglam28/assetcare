@@ -148,13 +148,29 @@ export const ReportIncidentPage = () => {
       return;
     }
 
-    if (!formData.title.trim()) {
-      setError('Vui lòng nhập tóm tắt tiêu đề sự cố');
+    const trimmedTitle = (formData.title || '').trim();
+    if (!trimmedTitle) {
+      setError('Vui lòng nhập tiêu đề tóm tắt sự cố');
+      return;
+    }
+    if (trimmedTitle.length < 3) {
+      setError('Tiêu đề sự cố cần tối thiểu 3 ký tự (Ví dụ: "Máy tính không lên nguồn")');
       return;
     }
 
-    if (!formData.description.trim()) {
-      setError('Vui lòng mô tả chi tiết hiện tượng hỏng hóc');
+    const trimmedDescription = (formData.description || '').trim();
+    if (!trimmedDescription) {
+      setError('Vui lòng nhập mô tả chi tiết hiện tượng hỏng hóc (tối thiểu 5 ký tự)');
+      return;
+    }
+    if (trimmedDescription.length < 5) {
+      setError('Mô tả chi tiết sự cố cần tối thiểu 5 ký tự để KTV nắm bắt thông tin');
+      return;
+    }
+
+    const trimmedEmail = (formData.contactEmail || '').trim();
+    if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setError('Địa chỉ email nhận thông báo không đúng định dạng (VD: ten@utt.edu.vn)');
       return;
     }
 
@@ -162,13 +178,13 @@ export const ReportIncidentPage = () => {
       setSubmitting(true);
       const payload = {
         deviceId: Number(formData.deviceId),
-        title: formData.title.trim(),
-        incidentType: formData.incidentType,
-        priority: formData.priority,
-        description: formData.description.trim(),
-        contactPhone: formData.contactPhone.trim() || null,
-        contactEmail: formData.contactEmail.trim() || null,
-        imageUrl: formData.imageUrl.trim() || null,
+        title: trimmedTitle,
+        incidentType: formData.incidentType || 'HARDWARE',
+        priority: formData.priority || 'MEDIUM',
+        description: trimmedDescription,
+        contactPhone: (formData.contactPhone || '').trim() || null,
+        contactEmail: trimmedEmail || null,
+        imageUrl: (formData.imageUrl || '').trim() || null,
       };
 
       const res = await maintenanceService.createRequest(payload);
@@ -177,7 +193,17 @@ export const ReportIncidentPage = () => {
         setShowSuccessModal(true);
       }
     } catch (err) {
-      setError(err?.message || err?.error || 'Gửi báo cáo sự cố thất bại. Vui lòng thử lại');
+      let detailedMsg = '';
+      if (err?.errors && Array.isArray(err.errors) && err.errors.length > 0) {
+        detailedMsg = err.errors.map(e => e.message).join('. ');
+      } else if (err?.message) {
+        detailedMsg = err.message;
+      } else if (err?.error) {
+        detailedMsg = err.error;
+      } else {
+        detailedMsg = 'Gửi báo cáo sự cố thất bại. Vui lòng kiểm tra lại thông tin';
+      }
+      setError(detailedMsg);
     } finally {
       setSubmitting(false);
     }
@@ -330,16 +356,21 @@ export const ReportIncidentPage = () => {
             <div className="space-y-4">
               {/* Tiêu đề */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Tiêu đề tóm tắt sự cố <span className="text-rose-500">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    Tiêu đề tóm tắt sự cố <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400">Tối thiểu 3 ký tự</span>
+                </div>
                 <input
                   type="text"
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
-                  placeholder="VD: Máy chiếu không lên đèn, PC không vào được mạng..."
-                  className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs sm:text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                  minLength={3}
+                  maxLength={200}
+                  placeholder="VD: Máy tính không lên nguồn, màn hình bị sọc xanh..."
+                  className="block w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 shadow-2xs"
                   required
                 />
               </div>
@@ -388,7 +419,7 @@ export const ReportIncidentPage = () => {
                   name="incidentType"
                   value={formData.incidentType}
                   onChange={handleChange}
-                  className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700 focus:border-brand-500 focus:outline-none"
+                  className="block w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs sm:text-sm text-slate-700 focus:border-brand-500 focus:outline-none shadow-2xs"
                 >
                   <option value="HARDWARE">Lỗi phần cứng / Thiết bị hỏng</option>
                   <option value="SOFTWARE">Lỗi phần mềm / Hệ điều hành</option>
@@ -400,16 +431,20 @@ export const ReportIncidentPage = () => {
 
               {/* Mô tả chi tiết */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Mô tả chi tiết hiện tượng <span className="text-rose-500">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    Mô tả chi tiết hiện tượng <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400">Tối thiểu 5 ký tự</span>
+                </div>
                 <textarea
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
                   rows={3}
-                  placeholder="Mô tả cụ thể: Đang sử dụng thì tắt ngấm, phát ra tiếng kêu lạ, màn hình nhấp nháy, báo lỗi mã gì..."
-                  className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs sm:text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                  minLength={5}
+                  placeholder="Mô tả cụ thể: Bật nguồn không lên, quạt không quay, màn hình đen hoặc nhấp nháy, có mùi khét..."
+                  className="block w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 shadow-2xs"
                   required
                 />
               </div>

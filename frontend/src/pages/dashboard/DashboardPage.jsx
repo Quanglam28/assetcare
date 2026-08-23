@@ -199,16 +199,24 @@ export const DashboardPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2.5">
-            <LayoutDashboard className="w-7 h-7 text-brand-600" />
-            Bảng Điều Khiển Quản Trị & Sức Khỏe Tài Sản (Management Dashboard)
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 text-[11px] font-bold border border-brand-200">
+              Enterprise Dashboard
+            </span>
+            <span className="text-xs text-slate-400 font-medium">Real-time Analytics</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+            <div className="p-2 rounded-2xl bg-brand-600 text-white shadow-md shadow-brand-600/30">
+              <LayoutDashboard className="w-6 h-6" />
+            </div>
+            Bảng Điều Khiển Quản Trị & Sức Khỏe Tài Sản
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Tổng hợp dữ liệu thời gian thực về thiết bị, dự báo nguy cơ hỏng hóc (Predictive Risk), cam kết SLA và chi phí vận hành.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {isAdmin && (
             <Button
               variant="outline"
@@ -216,7 +224,7 @@ export const DashboardPage = () => {
               icon={Sparkles}
               loading={recalculating}
               onClick={handleRecalculateAll}
-              className="text-brand-700 bg-brand-50 border-brand-200 hover:bg-brand-100"
+              className="text-brand-700 bg-brand-50/80 border-brand-200 hover:bg-brand-100 font-bold"
               title="Tính toán lại toàn bộ điểm Sức Khỏe & Nguy Cơ cho 50 thiết bị"
             >
               Tính Lại Sức Khỏe (Batch)
@@ -229,6 +237,7 @@ export const DashboardPage = () => {
             icon={RotateCcw}
             onClick={fetchDashboardData}
             title="Tải lại số liệu mới nhất"
+            className="font-bold"
           >
             Làm Mới
           </Button>
@@ -248,16 +257,18 @@ export const DashboardPage = () => {
       )}
 
       {/* Multi-Dimensional Filter Bar */}
-      <Card className="p-4 bg-white shadow-sm border border-slate-200 space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-            <Filter className="w-4 h-4 text-brand-600" />
+      <Card className="p-4 sm:p-5 bg-white shadow-xs border border-slate-200/90 rounded-2xl space-y-3.5">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+            <div className="p-1 rounded-lg bg-brand-50 text-brand-600">
+              <Filter className="w-3.5 h-3.5" />
+            </div>
             Bộ Lọc Đa Chiều (Multi-Dimensional Filters)
           </span>
           <button
             type="button"
             onClick={handleResetFilters}
-            className="text-xs text-brand-600 font-semibold hover:underline flex items-center gap-1"
+            className="text-xs text-brand-600 font-bold hover:text-brand-700 hover:underline flex items-center gap-1 transition-colors"
           >
             <RotateCcw className="w-3 h-3" />
             Xóa bộ lọc
@@ -267,36 +278,36 @@ export const DashboardPage = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
           {/* Date from */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Từ ngày</label>
+            <label className="block text-[11px] font-bold text-slate-600 mb-1">Từ ngày</label>
             <input
               type="date"
               name="startDate"
               value={filters.startDate}
               onChange={handleFilterChange}
-              className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-brand-500 font-mono"
+              className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:border-brand-500 font-mono shadow-2xs transition-all"
             />
           </div>
 
           {/* Date to */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Đến ngày</label>
+            <label className="block text-[11px] font-bold text-slate-600 mb-1">Đến ngày</label>
             <input
               type="date"
               name="endDate"
               value={filters.endDate}
               onChange={handleFilterChange}
-              className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-brand-500 font-mono"
+              className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:border-brand-500 font-mono shadow-2xs transition-all"
             />
           </div>
 
           {/* Building */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Tòa nhà</label>
+            <label className="block text-[11px] font-bold text-slate-600 mb-1">Tòa nhà</label>
             <select
               name="buildingId"
               value={filters.buildingId}
               onChange={handleFilterChange}
-              className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-brand-500"
+              className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:border-brand-500 shadow-2xs transition-all"
             >
               <option value="">-- Tất cả tòa --</option>
               {filterMeta.buildings.map(b => (
@@ -307,12 +318,12 @@ export const DashboardPage = () => {
 
           {/* Location */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Phòng / Địa điểm</label>
+            <label className="block text-[11px] font-bold text-slate-600 mb-1">Phòng / Địa điểm</label>
             <select
               name="locationId"
               value={filters.locationId}
               onChange={handleFilterChange}
-              className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-brand-500"
+              className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:border-brand-500 shadow-2xs transition-all"
             >
               <option value="">-- Tất cả phòng --</option>
               {availableLocations.map(l => (
@@ -323,12 +334,12 @@ export const DashboardPage = () => {
 
           {/* Device Type */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Loại thiết bị</label>
+            <label className="block text-[11px] font-bold text-slate-600 mb-1">Loại thiết bị</label>
             <select
               name="deviceTypeId"
               value={filters.deviceTypeId}
               onChange={handleFilterChange}
-              className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-brand-500"
+              className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:border-brand-500 shadow-2xs transition-all"
             >
               <option value="">-- Tất cả loại --</option>
               {filterMeta.deviceTypes.map(dt => (
@@ -339,12 +350,12 @@ export const DashboardPage = () => {
 
           {/* Priority */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Mức ưu tiên</label>
+            <label className="block text-[11px] font-bold text-slate-600 mb-1">Mức ưu tiên</label>
             <select
               name="priority"
               value={filters.priority}
               onChange={handleFilterChange}
-              className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:border-brand-500"
+              className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:border-brand-500 shadow-2xs transition-all"
             >
               <option value="">-- Tất cả ưu tiên --</option>
               <option value="LOW">Thấp (Low)</option>
@@ -360,98 +371,98 @@ export const DashboardPage = () => {
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
           {/* 1. Tổng thiết bị */}
-          <Card className="p-3 bg-white border border-slate-200 hover:shadow-md transition-shadow">
+          <Card className="p-3.5 bg-white border border-slate-200/90 hover:shadow-md hover:border-slate-300 transition-all rounded-2xl">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-slate-500">Tổng Thiết Bị</span>
-              <div className="p-1.5 bg-slate-100 text-slate-600 rounded-lg">
-                <Laptop className="w-4 h-4" />
+              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Tổng Thiết Bị</span>
+              <div className="p-1.5 bg-slate-100 text-slate-700 rounded-xl">
+                <Laptop className="w-3.5 h-3.5" />
               </div>
             </div>
-            <p className="text-xl font-black text-slate-900 mt-1 font-mono">{stats.totalDevices}</p>
-            <span className="text-[10px] text-slate-400 block">tài sản quản lý</span>
+            <p className="text-2xl font-black text-slate-900 mt-2 font-mono">{stats.totalDevices}</p>
+            <span className="text-[10px] text-slate-400 font-medium block mt-0.5">tài sản quản lý</span>
           </Card>
 
           {/* 2. Thiết bị hoạt động */}
-          <Card className="p-3 bg-white border border-emerald-200 hover:shadow-md transition-shadow bg-emerald-50/30">
+          <Card className="p-3.5 bg-white border border-emerald-200/80 hover:shadow-md hover:border-emerald-300 transition-all rounded-2xl bg-emerald-50/20">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-emerald-700">Hoạt Động Tốt</span>
-              <div className="p-1.5 bg-emerald-100 text-emerald-600 rounded-lg">
-                <CheckCircle2 className="w-4 h-4" />
+              <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider">Hoạt Động Tốt</span>
+              <div className="p-1.5 bg-emerald-100 text-emerald-700 rounded-xl">
+                <CheckCircle2 className="w-3.5 h-3.5" />
               </div>
             </div>
-            <p className="text-xl font-black text-emerald-600 mt-1 font-mono">{stats.activeDevices}</p>
-            <span className="text-[10px] text-emerald-700/80 block font-medium">sẵn sàng sử dụng</span>
+            <p className="text-2xl font-black text-emerald-600 mt-2 font-mono">{stats.activeDevices}</p>
+            <span className="text-[10px] text-emerald-700/80 font-semibold block mt-0.5">sẵn sàng sử dụng</span>
           </Card>
 
           {/* 3. Thiết bị hỏng */}
-          <Card className="p-3 bg-white border border-rose-200 hover:shadow-md transition-shadow bg-rose-50/30">
+          <Card className="p-3.5 bg-white border border-rose-200/80 hover:shadow-md hover:border-rose-300 transition-all rounded-2xl bg-rose-50/20">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-rose-700">Thiết Bị Hỏng</span>
-              <div className="p-1.5 bg-rose-100 text-rose-600 rounded-lg">
-                <AlertTriangle className="w-4 h-4" />
+              <span className="text-[10px] uppercase font-bold text-rose-800 tracking-wider">Thiết Bị Hỏng</span>
+              <div className="p-1.5 bg-rose-100 text-rose-700 rounded-xl">
+                <AlertTriangle className="w-3.5 h-3.5" />
               </div>
             </div>
-            <p className="text-xl font-black text-rose-600 mt-1 font-mono">{stats.brokenDevices}</p>
-            <span className="text-[10px] text-rose-600/80 block font-medium">cần khắc phục</span>
+            <p className="text-2xl font-black text-rose-600 mt-2 font-mono">{stats.brokenDevices}</p>
+            <span className="text-[10px] text-rose-700/80 font-semibold block mt-0.5">cần khắc phục</span>
           </Card>
 
           {/* 4. Đang bảo trì */}
-          <Card className="p-3 bg-white border border-amber-200 hover:shadow-md transition-shadow bg-amber-50/30">
+          <Card className="p-3.5 bg-white border border-amber-200/80 hover:shadow-md hover:border-amber-300 transition-all rounded-2xl bg-amber-50/20">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-amber-700">Đang Bảo Trì</span>
-              <div className="p-1.5 bg-amber-100 text-amber-600 rounded-lg">
-                <Wrench className="w-4 h-4" />
+              <span className="text-[10px] uppercase font-bold text-amber-800 tracking-wider">Đang Bảo Trì</span>
+              <div className="p-1.5 bg-amber-100 text-amber-700 rounded-xl">
+                <Wrench className="w-3.5 h-3.5" />
               </div>
             </div>
-            <p className="text-xl font-black text-amber-600 mt-1 font-mono">{stats.maintenanceDevices}</p>
-            <span className="text-[10px] text-amber-700/80 block font-medium">đang sửa chữa</span>
+            <p className="text-2xl font-black text-amber-600 mt-2 font-mono">{stats.maintenanceDevices}</p>
+            <span className="text-[10px] text-amber-800/80 font-semibold block mt-0.5">đang sửa chữa</span>
           </Card>
 
           {/* 5. Ticket chờ xử lý */}
-          <Card className="p-3 bg-white border border-slate-200 hover:shadow-md transition-shadow">
+          <Card className="p-3.5 bg-white border border-slate-200/90 hover:shadow-md hover:border-slate-300 transition-all rounded-2xl">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-slate-500">Chờ Xử Lý</span>
-              <div className="p-1.5 bg-amber-100 text-amber-600 rounded-lg">
-                <Clock className="w-4 h-4" />
+              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Chờ Xử Lý</span>
+              <div className="p-1.5 bg-amber-50 text-amber-600 rounded-xl border border-amber-200">
+                <Clock className="w-3.5 h-3.5" />
               </div>
             </div>
-            <p className="text-xl font-black text-amber-600 mt-1 font-mono">{stats.pendingTickets}</p>
-            <span className="text-[10px] text-slate-400 block">chờ gán / duyệt</span>
+            <p className="text-2xl font-black text-amber-600 mt-2 font-mono">{stats.pendingTickets}</p>
+            <span className="text-[10px] text-slate-400 font-medium block mt-0.5">chờ gán / duyệt</span>
           </Card>
 
           {/* 6. Ticket đang xử lý */}
-          <Card className="p-3 bg-white border border-slate-200 hover:shadow-md transition-shadow">
+          <Card className="p-3.5 bg-white border border-slate-200/90 hover:shadow-md hover:border-slate-300 transition-all rounded-2xl">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-slate-500">Đang Xử Lý</span>
-              <div className="p-1.5 bg-blue-100 text-blue-600 rounded-lg">
-                <Wrench className="w-4 h-4" />
+              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Đang Xử Lý</span>
+              <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl border border-blue-200">
+                <Wrench className="w-3.5 h-3.5" />
               </div>
             </div>
-            <p className="text-xl font-black text-blue-600 mt-1 font-mono">{stats.inProgressTickets}</p>
-            <span className="text-[10px] text-slate-400 block">KTV đang làm</span>
+            <p className="text-2xl font-black text-blue-600 mt-2 font-mono">{stats.inProgressTickets}</p>
+            <span className="text-[10px] text-slate-400 font-medium block mt-0.5">KTV đang làm</span>
           </Card>
 
           {/* 7. Ticket quá hạn (>48h) */}
-          <Card className="p-3 bg-white border-2 border-rose-500 hover:shadow-md transition-shadow bg-rose-50/50">
+          <Card className="p-3.5 bg-white border-2 border-rose-500 hover:shadow-md transition-all rounded-2xl bg-rose-50/40">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-rose-700">{'Quá Hạn (>48h)'}</span>
-              <div className="p-1.5 bg-rose-100 text-rose-600 rounded-lg">
-                <ShieldAlert className="w-4 h-4" />
+              <span className="text-[10px] uppercase font-bold text-rose-800 tracking-wider">{'Quá Hạn (>48h)'}</span>
+              <div className="p-1.5 bg-rose-200/80 text-rose-800 rounded-xl">
+                <ShieldAlert className="w-3.5 h-3.5" />
               </div>
             </div>
-            <p className="text-xl font-black text-rose-600 mt-1 font-mono">{stats.overdueTickets}</p>
-            <span className="text-[10px] text-rose-600 font-bold block">chậm tiến độ ⚠️</span>
+            <p className="text-2xl font-black text-rose-600 mt-2 font-mono">{stats.overdueTickets}</p>
+            <span className="text-[10px] text-rose-700 font-bold block mt-0.5">chậm tiến độ ⚠️</span>
           </Card>
 
           {/* 8. Chi phí bảo trì */}
-          <Card className="p-3 bg-white border border-brand-200 hover:shadow-md transition-shadow bg-brand-50/30">
+          <Card className="p-3.5 bg-white border border-brand-200/80 hover:shadow-md hover:border-brand-300 transition-all rounded-2xl bg-brand-50/20">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-brand-700">Tổng Chi Phí</span>
-              <div className="p-1.5 bg-brand-100 text-brand-600 rounded-lg">
-                <DollarSign className="w-4 h-4" />
+              <span className="text-[10px] uppercase font-bold text-brand-800 tracking-wider">Tổng Chi Phí</span>
+              <div className="p-1.5 bg-brand-100 text-brand-700 rounded-xl">
+                <DollarSign className="w-3.5 h-3.5" />
               </div>
             </div>
-            <p className="text-sm font-black text-brand-700 mt-1 font-mono truncate">
+            <p className="text-sm font-black text-brand-700 mt-2 font-mono truncate">
               {Number(stats.totalMaintenanceCost).toLocaleString('vi-VN')} đ
             </p>
             <span className="text-[10px] text-brand-700/80 block">vật tư & sửa chữa</span>

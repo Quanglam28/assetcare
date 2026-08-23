@@ -101,24 +101,28 @@ class MaintenanceService {
       entityId: requestId,
     });
 
-    // 2. MODULE 10 NOTIFICATION: Nếu mức ưu tiên là URGENT, gửi cảnh báo ngay cho toàn bộ Ban Quản lý (MANAGERS)
-    if (priority === 'URGENT') {
-      const [managerRows] = await pool.execute(`
-        SELECT u.id 
-        FROM users u 
-        JOIN roles r ON u.role_id = r.id 
-        WHERE r.code IN ('ADMIN', 'MANAGER') AND u.status = 'ACTIVE'
-      `);
-      for (const m of managerRows) {
-        await notificationRepository.create({
-          userId: m.id,
-          title: `⚠️ Sự cố KHẨN CẤP mới: [${nextCode}]`,
-          message: `Sự cố mức độ KHẨN CẤP tại thiết bị "${device.name}" (${device.code}) cần được điều phối kỹ thuật viên ngay lập tức.`,
-          type: 'URGENT',
-          entityType: 'MAINTENANCE_REQUEST',
-          entityId: requestId,
-        });
-      }
+    // 2. MODULE 10 NOTIFICATION: Gửi thông báo cho toàn bộ Ban Quản lý (ADMIN, MANAGER)
+    const [managerRows] = await pool.execute(`
+      SELECT u.id 
+      FROM users u 
+      JOIN roles r ON u.role_id = r.id 
+      WHERE r.code IN ('ADMIN', 'MANAGER') AND u.status = 'ACTIVE'
+    `);
+    
+    const notifType = priority === 'URGENT' ? 'URGENT' : (priority === 'HIGH' ? 'WARNING' : 'INFO');
+    const notifTitle = priority === 'URGENT' 
+      ? `⚠️ Sự cố KHẨN CẤP mới: [${nextCode}]`
+      : (priority === 'HIGH' ? `🔔 Sự cố Ưu tiên cao: [${nextCode}]` : `📋 Phiếu báo sự cố mới: [${nextCode}]`);
+
+    for (const m of managerRows) {
+      await notificationRepository.create({
+        userId: m.id,
+        title: notifTitle,
+        message: `Người dùng ${currentUser.fullName || currentUser.username} vừa báo hỏng thiết bị "${device.name}" (${device.code}) tại phòng ${device.room_name || 'chưa xác định'}. Mức ưu tiên: ${priority}.`,
+        type: notifType,
+        entityType: 'MAINTENANCE_REQUEST',
+        entityId: requestId,
+      });
     }
 
     logger.info(`[Maintenance] Đã tạo phiếu yêu cầu mới [${nextCode}] ID [${requestId}] bởi user [${currentUser.username}]`);

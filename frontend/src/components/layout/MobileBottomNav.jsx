@@ -60,9 +60,9 @@ export const MobileBottomNav = () => {
       {/* Mobile Bottom Navigation Bar (Hidden on md/lg screens) */}
       <nav 
         aria-label="Thanh điều hướng di động"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] pb-[env(safe-area-inset-bottom,6px)]"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200/80 px-3 py-1.5 shadow-[0_-6px_25px_rgba(0,0,0,0.08)] pb-[calc(env(safe-area-inset-bottom,6px)+2px)] transition-all"
       >
-        <div className="flex items-center justify-around">
+        <div className="flex items-center justify-around max-w-md mx-auto">
           {navItems.map((item, idx) => {
             const Icon = item.icon;
 
@@ -72,13 +72,13 @@ export const MobileBottomNav = () => {
                 <NavLink
                   key={idx}
                   to={item.to}
-                  className="flex flex-col items-center -mt-5 group"
+                  className="flex flex-col items-center -mt-6 group focus:outline-none"
                   title={item.label}
                 >
-                  <div className="w-12 h-12 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-lg shadow-brand-600/40 ring-4 ring-white group-hover:scale-105 transition-all">
+                  <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-brand-600/40 ring-4 ring-white group-active:scale-95 transition-all">
                     <Icon className="w-6 h-6" />
                   </div>
-                  <span className="text-[10px] font-bold text-brand-600 mt-1">
+                  <span className="text-[10px] font-bold text-brand-600 mt-1 tracking-tight">
                     {item.label}
                   </span>
                 </NavLink>
@@ -91,7 +91,7 @@ export const MobileBottomNav = () => {
                   key={idx}
                   type="button"
                   onClick={() => setProfileModalOpen(true)}
-                  className="flex flex-col items-center py-1 px-2 text-slate-500 hover:text-brand-600 transition-colors min-w-[54px] touch-manipulation"
+                  className="flex flex-col items-center py-1 px-2 text-slate-500 hover:text-brand-600 active:scale-95 transition-all min-w-[50px] touch-manipulation focus:outline-none"
                 >
                   <Icon className="w-5 h-5 mb-0.5" />
                   <span className="text-[10px] font-medium leading-none">
@@ -106,17 +106,26 @@ export const MobileBottomNav = () => {
                 key={idx}
                 to={item.to}
                 className={({ isActive }) =>
-                  `flex flex-col items-center py-1 px-2 transition-all min-w-[54px] touch-manipulation ${
+                  `flex flex-col items-center py-1 px-2 transition-all min-w-[50px] touch-manipulation focus:outline-none ${
                     isActive
-                      ? 'text-brand-600 font-bold scale-105'
+                      ? 'text-brand-600 font-bold'
                       : 'text-slate-500 hover:text-slate-800 font-medium'
                   }`
                 }
               >
-                <Icon className="w-5 h-5 mb-0.5" />
-                <span className="text-[10px] leading-none">
-                  {item.label}
-                </span>
+                {({ isActive }) => (
+                  <>
+                    <div className="relative">
+                      <Icon className="w-5 h-5 mb-0.5" />
+                      {isActive && (
+                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-brand-600" />
+                      )}
+                    </div>
+                    <span className="text-[10px] leading-none mt-0.5">
+                      {item.label}
+                    </span>
+                  </>
+                )}
               </NavLink>
             );
           })}

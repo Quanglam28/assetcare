@@ -1,6 +1,7 @@
 const assert = require('assert');
 const assetHealthService = require('./src/services/assetHealthService');
 const config = require('./src/config/healthScoreConfig');
+const { pool } = require('./src/config/db');
 
 async function runPhase1HealthTests() {
   console.log('========================================================================');
@@ -143,6 +144,7 @@ async function runPhase1HealthTests() {
   console.log('========================================================================');
   console.log('🎉 TOÀN BỘ 11/11 BÀI KIỂM THỬ PHASE 1 ASSET HEALTH SCORE ENGINE ĐẠT 100%!');
   console.log('========================================================================\n');
+  await pool.end();
 }
 
 runPhase1HealthTests().catch(err => {

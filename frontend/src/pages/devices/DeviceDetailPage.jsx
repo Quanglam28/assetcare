@@ -14,6 +14,7 @@ import { AssetHealthCard } from '../../components/devices/AssetHealthCard';
 import { FailureRiskCard } from '../../components/devices/FailureRiskCard';
 import { PriorityScoreCard } from '../../components/devices/PriorityScoreCard';
 import { AssetLifecycleTimeline } from '../../components/devices/AssetLifecycleTimeline';
+import { DeviceActivityTimeline } from '../../components/devices/DeviceActivityTimeline';
 import { PredictiveSimulationCard } from '../../components/devices/PredictiveSimulationCard';
 import { SystemRecommendationCard } from '../../components/devices/SystemRecommendationCard';
 import { HealthRiskHistoryChart } from '../../components/devices/HealthRiskHistoryChart';
@@ -446,13 +447,18 @@ export const DeviceDetailPage = () => {
 
           {/* TAB 3: LỊCH SỬ BẢO TRÌ & SỬA CHỮA */}
           {activeTab === 'history' && (
-            <Card className="p-6 bg-white shadow-sm border border-slate-200">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <Wrench className="w-4 h-4 text-brand-600" />
-                  Toàn Bộ Lịch Sử Bảo Trì & Sửa Chữa ({device.maintenanceHistory?.length || 0})
-                </h3>
-              </div>
+            <div className="space-y-6">
+              {/* 1. Timeline Hoạt động Tổng hợp */}
+              <DeviceActivityTimeline deviceId={device.id} />
+
+              {/* 2. Chi tiết các Phiếu yêu cầu bảo trì */}
+              <Card className="p-6 bg-white shadow-sm border border-slate-200">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <Wrench className="w-4 h-4 text-brand-600" />
+                    Danh Sách Phiếu Sự Cố & Bảo Trì ({device.maintenanceHistory?.length || 0})
+                  </h3>
+                </div>
 
               {(!device.maintenanceHistory || device.maintenanceHistory.length === 0) ? (
                 <div className="py-8 text-center bg-slate-50 rounded-xl">
@@ -524,8 +530,9 @@ export const DeviceDetailPage = () => {
                 </div>
               )}
             </Card>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
 
         {/* Right 1 Col: QR Code Panel & Quick Status Changer */}
         <div className="space-y-6">

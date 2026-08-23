@@ -23,7 +23,10 @@ router.get('/', authenticate, deviceController.getDevices);
 // 4. Lấy chi tiết thiết bị & lịch sử bảo trì
 router.get('/:id', authenticate, deviceController.getDeviceById);
 
-// 4.1. Phân tích tình trạng sức khỏe thiết bị & Tính điểm Asset Health Score 0-100 (MODULE 14)
+// 4.1. Lấy Timeline lịch sử hoạt động toàn diện của thiết bị
+router.get('/:id/timeline', authenticate, deviceController.getDeviceTimeline);
+
+// 4.2. Phân tích tình trạng sức khỏe thiết bị & Tính điểm Asset Health Score 0-100 (MODULE 14)
 router.get('/:id/health-analytics', authenticate, deviceController.getAssetHealthAnalytics);
 
 // 4.2. Lấy mã QR Code và đường dẫn quét URL cho thiết bị (ADMIN, MANAGER)
