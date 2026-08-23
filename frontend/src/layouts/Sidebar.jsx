@@ -26,35 +26,35 @@ export const Sidebar = ({ isCollapsed, isMobileOpen, onCloseMobile }) => {
     {
       title: 'TỔNG QUAN',
       items: [
-        { name: 'Dashboard', to: '/dashboard', icon: LayoutDashboard, show: true },
+        { name: 'Tổng quan', to: '/dashboard', icon: LayoutDashboard, show: true },
         { name: 'Quét mã QR', to: '/qr-scanner', icon: QrCode, show: true },
       ],
     },
     {
       title: 'QUẢN LÝ THIẾT BỊ',
       items: [
-        { name: 'Danh sách thiết bị', to: '/devices', icon: Laptop, show: true },
+        { name: 'Thiết bị', to: '/devices', icon: Laptop, show: true },
         { name: 'Loại thiết bị', to: '/device-types', icon: Layers, show: isAdmin || isManager },
-        { name: 'Tòa nhà & Phòng', to: '/locations', icon: Building2, show: isAdmin || isManager },
+        { name: 'Vị trí & Phòng', to: '/locations', icon: Building2, show: isAdmin || isManager },
         { name: 'Nhà cung cấp', to: '/suppliers', icon: FileText, show: isAdmin },
       ],
     },
     {
-      title: 'QUY TRÌNH BẢO TRÌ',
+      title: 'QUẢN LÝ BẢO TRÌ',
       items: [
         { name: 'Phân tích rủi ro', to: '/risk-matrix', icon: BarChart3, show: isAdmin || isManager || isTechnician },
         { name: 'Công việc bảo trì', to: '/work-orders', icon: FileText, show: isAdmin || isManager || isTechnician },
         { name: 'Xử lý sự cố', to: '/technician/dashboard', icon: Wrench, show: isAdmin || isManager || isTechnician },
-        { name: 'Báo cáo thiết bị hỏng', to: '/report-issue', icon: ShieldAlert, show: true },
+        { name: 'Báo cáo hỏng thiết bị', to: '/report-issue', icon: ShieldAlert, show: true },
         { name: 'Yêu cầu bảo trì', to: '/maintenance', icon: FileText, show: true },
-        { name: 'Lịch bảo trì định kỳ', to: '/schedules', icon: Calendar, show: isAdmin || isManager || isTechnician },
+        { name: 'Lịch bảo trì', to: '/schedules', icon: Calendar, show: isAdmin || isManager || isTechnician },
         { name: 'Báo cáo & Thống kê', to: '/reports', icon: BarChart3, show: isAdmin || isManager },
       ],
     },
     {
       title: 'HỆ THỐNG',
       items: [
-        { name: 'Quản lý tài khoản', to: '/users', icon: Users, show: isAdmin || isManager },
+        { name: 'Tài khoản người dùng', to: '/users', icon: Users, show: isAdmin || isManager },
       ],
     },
   ];

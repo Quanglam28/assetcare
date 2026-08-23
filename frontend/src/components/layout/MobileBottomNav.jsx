@@ -22,7 +22,7 @@ export const MobileBottomNav = () => {
 
   if (user?.role === ROLES.USER) {
     navItems = [
-      { to: '/dashboard', label: 'Trang chủ', icon: Home },
+      { to: '/dashboard', label: 'Tổng quan', icon: Home },
       { to: '/my-tickets', label: 'Phiếu của tôi', icon: ClipboardList },
       { to: '/qr-scanner', label: 'Quét QR', icon: QrCode, isAction: true },
       { to: '/notifications', label: 'Thông báo', icon: Bell },
@@ -30,7 +30,7 @@ export const MobileBottomNav = () => {
     ];
   } else if (user?.role === ROLES.TECHNICIAN) {
     navItems = [
-      { to: '/technician/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { to: '/technician/dashboard', label: 'Tổng quan', icon: LayoutDashboard },
       { to: '/maintenance', label: 'Xử lý sự cố', icon: Wrench },
       { to: '/qr-scanner', label: 'Quét QR', icon: QrCode, isAction: true },
       { to: '/schedules', label: 'Lịch bảo trì', icon: Calendar },
@@ -38,19 +38,19 @@ export const MobileBottomNav = () => {
     ];
   } else if (user?.role === ROLES.MANAGER) {
     navItems = [
-      { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { to: '/dashboard', label: 'Tổng quan', icon: LayoutDashboard },
       { to: '/devices', label: 'Thiết bị', icon: Laptop },
       { to: '/qr-scanner', label: 'Quét QR', icon: QrCode, isAction: true },
-      { to: '/maintenance', label: 'Bảo trì', icon: Wrench },
+      { to: '/maintenance', label: 'Yêu cầu bảo trì', icon: Wrench },
       { to: '/reports', label: 'Báo cáo', icon: BarChart3 },
     ];
   } else {
     // ADMIN
     navItems = [
-      { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { to: '/dashboard', label: 'Tổng quan', icon: LayoutDashboard },
       { to: '/devices', label: 'Thiết bị', icon: Laptop },
       { to: '/qr-scanner', label: 'Quét QR', icon: QrCode, isAction: true },
-      { to: '/maintenance', label: 'Bảo trì', icon: Wrench },
+      { to: '/maintenance', label: 'Yêu cầu bảo trì', icon: Wrench },
       { to: '/users', label: 'Tài khoản', icon: Users },
     ];
   }

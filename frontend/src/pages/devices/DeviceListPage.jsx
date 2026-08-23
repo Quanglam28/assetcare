@@ -159,8 +159,8 @@ export const DeviceListPage = () => {
       {/* Breadcrumb */}
       <Breadcrumb
         items={[
-          { label: 'Quản lý tài sản' },
-          { label: 'Danh sách thiết bị' },
+          { label: 'Quản lý thiết bị' },
+          { label: 'Thiết bị' },
         ]}
       />
 

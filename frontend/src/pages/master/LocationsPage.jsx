@@ -195,7 +195,7 @@ export const LocationsPage = () => {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2.5">
             <Building2 className="w-7 h-7 text-brand-600" />
-            Quản Lý Tòa Nhà & Phòng Học
+            Quản Lý Vị Trí & Phòng Học
           </h1>
           <p className="text-sm text-slate-500 mt-1">
             Quản trị vị trí, khu giảng đường, phòng thí nghiệm và cơ sở hạ tầng đại học

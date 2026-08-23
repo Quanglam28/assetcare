@@ -89,7 +89,7 @@ export const WorkOrderListPage = () => {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2.5">
             <ClipboardList className="w-6 h-6 text-brand-600" />
-            Lệnh Công Tác Bảo Trì (Maintenance Work Orders)
+            Công Việc Bảo Trì (Maintenance Work Orders)
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Quản lý vòng đời phiếu lệnh công tác kỹ thuật, điều phối và nghiệm thu chi phí thực tế

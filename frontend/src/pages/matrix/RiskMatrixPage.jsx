@@ -89,7 +89,7 @@ export const RiskMatrixPage = () => {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2.5">
             <Grid className="w-6 h-6 text-brand-600" />
-            Ma Trận Rủi Ro Thiết Bị (Risk Matrix Dashboard)
+            Phân Tích Rủi Ro Thiết Bị (Risk Matrix)
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Phân bố không gian 4 phân vùng giữa Sức khỏe (Health Score) và Nguy cơ sự cố (Failure Risk)

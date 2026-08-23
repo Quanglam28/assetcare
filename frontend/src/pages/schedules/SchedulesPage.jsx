@@ -110,7 +110,7 @@ export const SchedulesPage = () => {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2.5">
             <Calendar className="w-7 h-7 text-brand-600" />
-            Lịch Bảo Trì & Bảo Dưỡng Định Kỳ (Preventive Maintenance)
+            Lịch Bảo Trì Định Kỳ (Preventive Maintenance)
           </h1>
           <p className="text-xs text-slate-500 mt-1">
             Lập kế hoạch bảo dưỡng phòng ngừa hỏng hóc, tính toán chu kỳ định kỳ tự động và cảnh báo hạn xử lý.

@@ -115,8 +115,8 @@ export const UserListPage = () => {
       {/* Breadcrumb */}
       <Breadcrumb
         items={[
-          { label: 'Quản trị hệ thống' },
-          { label: 'Quản lý người dùng' },
+          { label: 'Hệ thống' },
+          { label: 'Tài khoản người dùng' },
         ]}
       />
 
@@ -125,7 +125,7 @@ export const UserListPage = () => {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2.5">
             <Users className="w-7 h-7 text-brand-600" />
-            Quản Lý Người Dùng & Tài Khoản
+            Tài Khoản Người Dùng & Phân Quyền
           </h1>
           <p className="text-sm text-slate-500 mt-1">
             Quản trị danh sách tài khoản, phân quyền vai trò (RBAC) và theo dõi trạng thái hoạt động

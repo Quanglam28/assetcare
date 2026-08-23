@@ -224,7 +224,7 @@ export const ReportIncidentPage = () => {
           </button>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
             <ShieldAlert className="w-6 h-6 sm:w-7 sm:h-7 text-rose-600 shrink-0" />
-            Báo Sự Cố & Yêu Cầu Sửa Chữa
+            Báo Cáo Hỏng Thiết Bị & Yêu Cầu Sửa Chữa
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             Gửi yêu cầu bảo trì trực tiếp tới Ban Quản trị và Kỹ thuật viên nhà trường

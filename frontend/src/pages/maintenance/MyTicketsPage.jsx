@@ -83,8 +83,8 @@ export const MyTicketsPage = () => {
       {/* Breadcrumb */}
       <Breadcrumb
         items={[
-          { label: 'Quy trình bảo trì' },
-          { label: 'Phiếu yêu cầu bảo trì của tôi' },
+          { label: 'Quản lý bảo trì' },
+          { label: 'Yêu cầu bảo trì của tôi' },
         ]}
       />
 
