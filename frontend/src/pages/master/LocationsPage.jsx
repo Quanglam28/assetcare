@@ -189,17 +189,19 @@ export const LocationsPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Breadcrumb */}
+      <div className="text-xs text-slate-400">
+        <span className="text-slate-500">Quản lý thiết bị</span>
+        <span className="mx-1.5">/</span>
+        <span className="text-slate-700 font-medium">Vị trí &amp; Phòng</span>
+      </div>
+
       {/* Header & Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2.5">
-            <Building2 className="w-7 h-7 text-brand-600" />
-            Quản Lý Vị Trí & Phòng Học
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Quản trị vị trí, khu giảng đường, phòng thí nghiệm và cơ sở hạ tầng đại học
-          </p>
+          <h1 className="text-lg font-semibold text-slate-900">Vị trí &amp; Phòng</h1>
+          <p className="text-sm text-slate-500 mt-0.5">Quản trị tòa nhà, phòng học và cơ sở hạ tầng</p>
         </div>
 
         {(isAdmin || isManager) && (

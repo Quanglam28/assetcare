@@ -39,3 +39,6 @@ Thumbs.db
 # Uploads & Temp
 backend/uploads/*
 !backend/uploads/.gitkeep
+
+.vercel
+.env*

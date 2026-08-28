@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Navbar } from './Navbar';
-import { Footer } from './Footer';
 import { MobileBottomNav } from '../components/layout/MobileBottomNav';
 import { PWAInstallPrompt } from '../components/pwa/PWAInstallPrompt';
 import { OfflineBanner } from '../components/pwa/OfflineBanner';
@@ -13,19 +12,15 @@ export const MainLayout = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
-      {/* Offline Status Top Banner */}
       <OfflineBanner />
 
-      {/* Sidebar (Desktop / Tablet Drawer) */}
       <Sidebar
         isCollapsed={isSidebarCollapsed}
         isMobileOpen={isMobileOpen}
         onCloseMobile={() => setIsMobileOpen(false)}
       />
 
-      {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Navbar */}
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         <Navbar
           onToggleSidebar={() => {
             if (window.innerWidth < 1024) {
@@ -34,26 +29,16 @@ export const MainLayout = () => {
               setIsSidebarCollapsed(!isSidebarCollapsed);
             }
           }}
-          isSidebarCollapsed={isSidebarCollapsed}
         />
 
-        {/* Dynamic Page Outlet with bottom padding on mobile for MobileBottomNav */}
-        <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 pb-20 md:pb-8">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6 pb-20 md:pb-6">
           <div className="mx-auto max-w-7xl">
             <Outlet />
           </div>
         </main>
-
-        {/* Desktop Footer (Hidden on mobile) */}
-        <div className="hidden md:block">
-          <Footer />
-        </div>
       </div>
 
-      {/* Mobile Bottom Navigation Bar */}
       <MobileBottomNav />
-
-      {/* PWA Install Floating Prompt */}
       <PWAInstallPrompt />
     </div>
   );

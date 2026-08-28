@@ -124,17 +124,19 @@ export const SuppliersPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Breadcrumb */}
+      <div className="text-xs text-slate-400">
+        <span className="text-slate-500">Quản lý thiết bị</span>
+        <span className="mx-1.5">/</span>
+        <span className="text-slate-700 font-medium">Nhà cung cấp</span>
+      </div>
+
       {/* Header & Add Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2.5">
-            <FileText className="w-7 h-7 text-brand-600" />
-            Quản Lý Nhà Cung Cấp & Đối Tác Bảo Hành
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Danh bạ các đơn vị phân phối thiết bị chính hãng, thông tin liên hệ bảo hành và bảo trì
-          </p>
+          <h1 className="text-lg font-semibold text-slate-900">Nhà cung cấp</h1>
+          <p className="text-sm text-slate-500 mt-0.5">Danh bạ nhà cung cấp thiết bị và đối tác bảo hành</p>
         </div>
 
         {isAdmin && (
