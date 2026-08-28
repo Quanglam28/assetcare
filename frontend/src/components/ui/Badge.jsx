@@ -10,7 +10,6 @@ const variants = {
   danger: 'bg-red-50 text-red-700',
   info: 'bg-sky-50 text-sky-700',
   purple: 'bg-violet-50 text-violet-700',
-  // Status-specific
   active: 'bg-emerald-50 text-emerald-700',
   maintenance: 'bg-amber-50 text-amber-800',
   broken: 'bg-red-50 text-red-700',
@@ -31,13 +30,6 @@ const sizes = {
 };
 
 const dotColors = {
-  default: 'bg-slate-400',
-  primary: 'bg-blue-500',
-  success: 'bg-emerald-500',
-  warning: 'bg-amber-500',
-  danger: 'bg-red-500',
-  info: 'bg-sky-500',
-  purple: 'bg-violet-500',
   active: 'bg-emerald-500',
   maintenance: 'bg-amber-500',
   broken: 'bg-red-500',
@@ -63,7 +55,7 @@ export const Badge = ({
     <span
       className={twMerge(
         clsx(
-          'inline-flex items-center rounded-md border border-transparent font-medium leading-none',
+          'inline-flex items-center rounded border border-transparent font-medium leading-none',
           variants[variant] || variants.default,
           sizes[size],
           className
@@ -72,7 +64,7 @@ export const Badge = ({
       {...props}
     >
       {dot && (
-        <span className={clsx('w-1.5 h-1.5 rounded-full mr-1.5 shrink-0', dotColors[variant] || dotColors.default)} />
+        <span className={clsx('w-1.5 h-1.5 rounded-full mr-1.5 shrink-0', dotColors[variant] || 'bg-slate-400')} />
       )}
       {children}
     </span>

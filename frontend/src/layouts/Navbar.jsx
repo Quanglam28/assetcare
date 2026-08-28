@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Menu, ChevronDown, KeyRound, LogOut } from 'lucide-react';
+import { Menu, ChevronDown, KeyRound, LogOut, Bell } from 'lucide-react';
 import { ROLE_LABELS } from '../utils/constants';
 import { ChangePasswordModal } from '../components/auth/ChangePasswordModal';
 import { NotificationDropdown } from '../components/layout/NotificationDropdown';
@@ -12,41 +12,44 @@ export const Navbar = ({ onToggleSidebar }) => {
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4 lg:px-6">
-        <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between bg-white border-b border-slate-200 px-4 lg:px-6">
+        <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={onToggleSidebar}
-            className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
-            title="Toggle menu"
+            className="flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
           >
             <Menu className="h-4 w-4" />
           </button>
+          <div className="hidden sm:flex items-center gap-1.5">
+            <span className="text-xs text-slate-400">/</span>
+            <span className="text-xs font-medium text-slate-600">Hệ thống quản lý tài sản</span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <NotificationDropdown />
 
           <div className="relative">
             <button
               type="button"
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-2 rounded px-2 py-1.5 hover:bg-slate-50 transition-colors"
             >
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-brand-600 text-white text-xs font-bold">
+              <div className="flex h-7 w-7 items-center justify-center rounded bg-brand-600 text-white text-[11px] font-bold">
                 {(user?.fullName || user?.username || '?')[0].toUpperCase()}
               </div>
               <div className="hidden md:block text-left">
                 <div className="text-xs font-medium text-slate-800 leading-tight">{user?.fullName || user?.username}</div>
                 <div className="text-[10px] text-slate-500">{ROLE_LABELS[user?.role] || user?.role}</div>
               </div>
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+              <ChevronDown className="h-3 w-3 text-slate-400" />
             </button>
 
             {dropdownOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
-                <div className="absolute right-0 mt-1 w-56 rounded-lg bg-white py-1 shadow-lg border border-slate-200 z-50">
+                <div className="absolute right-0 mt-1 w-56 rounded border border-slate-200 bg-white py-1 shadow-lg z-50">
                   <div className="px-4 py-2.5 border-b border-slate-100">
                     <div className="text-xs font-medium text-slate-900">{user?.fullName || user?.username}</div>
                     <div className="text-[10px] text-slate-500 mt-0.5">{user?.email}</div>
