@@ -306,7 +306,8 @@ CREATE TABLE attachments (
     uploaded_by INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (uploaded_by) REFERENCES users(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    INDEX idx_att_entity (entity_type, entity_id),
+    INDEX idx_att_entity (entity_type, entity_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- -----------------------------------------------------------------------------
 -- 15. Bảng asset_health_scores: Điểm số sức khỏe thiết bị (Asset Health Score)
 -- -----------------------------------------------------------------------------
