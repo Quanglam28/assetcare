@@ -51,3 +51,38 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+/* QR Scanner Live Camera Viewport Override */
+#qr-reader-container {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 360px !important;
+  position: relative !important;
+  border: none !important;
+  padding: 0 !important;
+  background-color: transparent !important;
+  overflow: hidden !important;
+  border-radius: 1rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+#qr-reader-container video {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 360px !important;
+  max-height: 520px !important;
+  object-fit: cover !important;
+  border-radius: 1rem !important;
+  display: block !important;
+}
+
+#qr-reader-container canvas {
+  display: none !important;
+}
+
+#qr-shaded-region {
+  border-radius: 1rem !important;
+}
+
