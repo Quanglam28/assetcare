@@ -6,46 +6,65 @@ const { pool } = require('../config/db');
 class ScheduleRepository {
   /**
    * Tính ngày bảo trì tiếp theo động từ dữ liệu và chu kỳ (không hard-code)
+   * Sử dụng cơ chế Month Clamping (EOM Clamping) để chống tràn tháng:
+   * VD: 31/01 + 1 tháng -> 28/02 (hoặc 29/02 năm nhuận), 31/03 + 1 tháng -> 30/04, 31/01 + 3 tháng -> 30/04
    * @param {Date|string} baseDate Ngày mốc tính toán
    * @param {string} frequency Chu kỳ: MONTHLY, QUARTERLY, SEMIANNUAL, YEARLY, CUSTOM
    * @param {number} customDays Số ngày nếu chu kỳ là CUSTOM
    * @returns {string} YYYY-MM-DD
    */
   calculateNextRunDate(baseDate, frequency, customDays = 30) {
-    const d = new Date(baseDate);
-    if (isNaN(d.getTime())) {
-      d.setTime(Date.now());
+    let year, month, day;
+
+    if (typeof baseDate === 'string') {
+      const match = baseDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) {
+        year = parseInt(match[1], 10);
+        month = parseInt(match[2], 10); // 1-12
+        day = parseInt(match[3], 10);   // 1-31
+      }
+    }
+
+    if (!year) {
+      const d = (baseDate instanceof Date && !isNaN(baseDate.getTime())) ? baseDate : new Date();
+      year = d.getFullYear();
+      month = d.getMonth() + 1;
+      day = d.getDate();
     }
 
     const freq = (frequency || 'QUARTERLY').toUpperCase();
 
-    switch (freq) {
-      case 'MONTHLY':
-        d.setMonth(d.getMonth() + 1);
-        break;
-      case 'QUARTERLY':
-        d.setMonth(d.getMonth() + 3);
-        break;
-      case 'SEMIANNUAL':
-      case 'SEMI_ANNUALLY':
-        d.setMonth(d.getMonth() + 6);
-        break;
-      case 'YEARLY':
-      case 'ANNUALLY':
-        d.setFullYear(d.getFullYear() + 1);
-        break;
-      case 'CUSTOM':
-        d.setDate(d.getDate() + (parseInt(customDays, 10) || 30));
-        break;
-      default:
-        d.setMonth(d.getMonth() + 3);
-        break;
+    if (freq === 'CUSTOM') {
+      const d = new Date(Date.UTC(year, month - 1, day + (parseInt(customDays, 10) || 30)));
+      const yStr = String(d.getUTCFullYear()).padStart(4, '0');
+      const mStr = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const dStr = String(d.getUTCDate()).padStart(2, '0');
+      return `${yStr}-${mStr}-${dStr}`;
     }
 
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    let monthsToAdd = 3;
+    if (freq === 'MONTHLY') {
+      monthsToAdd = 1;
+    } else if (freq === 'QUARTERLY') {
+      monthsToAdd = 3;
+    } else if (freq === 'SEMIANNUAL' || freq === 'SEMI_ANNUALLY') {
+      monthsToAdd = 6;
+    } else if (freq === 'ANNUALLY' || freq === 'YEARLY') {
+      monthsToAdd = 12;
+    }
+
+    const totalMonths = (year * 12 + (month - 1)) + monthsToAdd;
+    const targetYear = Math.floor(totalMonths / 12);
+    const targetMonth = (totalMonths % 12) + 1; // 1-12
+
+    // Số ngày tối đa của tháng đích trong UTC (day 0 của tháng targetMonth trong UTC)
+    const daysInTargetMonth = new Date(Date.UTC(targetYear, targetMonth, 0)).getUTCDate();
+    const targetDay = Math.min(day, daysInTargetMonth);
+
+    const yStr = String(targetYear).padStart(4, '0');
+    const mStr = String(targetMonth).padStart(2, '0');
+    const dStr = String(targetDay).padStart(2, '0');
+    return `${yStr}-${mStr}-${dStr}`;
   }
 
   /**

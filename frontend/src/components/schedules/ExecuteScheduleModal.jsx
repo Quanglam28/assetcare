@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { scheduleService } from '../../services/scheduleService';
 import { Button } from '../ui/Button';
 import { Alert } from '../ui/Alert';
+import { formatDate } from '../../utils/formatters';
 import { CheckCircle2, X, Wrench, Calendar, DollarSign } from 'lucide-react';
 
 export const ExecuteScheduleModal = ({ isOpen, onClose, schedule, onSuccess }) => {
@@ -65,7 +66,7 @@ export const ExecuteScheduleModal = ({ isOpen, onClose, schedule, onSuccess }) =
               Vị trí: <strong>{schedule.room_name}</strong> ({schedule.building_name})
             </p>
             <p className="text-[11px] text-brand-600 font-semibold">
-              Chu kỳ: {schedule.frequency} • Hạn hiện tại: {new Date(schedule.scheduled_date).toLocaleDateString('vi-VN')}
+              Chu kỳ: {schedule.frequency} • Hạn hiện tại: {formatDate(schedule.scheduled_date)}
             </p>
           </div>
 

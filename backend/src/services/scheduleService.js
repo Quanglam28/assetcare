@@ -2,7 +2,7 @@ const scheduleRepository = require('../repositories/scheduleRepository');
 const deviceRepository = require('../repositories/deviceRepository');
 const userRepository = require('../repositories/userRepository');
 const notificationRepository = require('../repositories/notificationRepository');
-const { BadRequestError, NotFoundError } = require('../utils/appError');
+const { BadRequestError, NotFoundError, ForbiddenError } = require('../utils/appError');
 const logger = require('../utils/logger');
 
 /**
@@ -35,6 +35,9 @@ class ScheduleService {
       const tech = await userRepository.findById(assignedTechnicianId);
       if (!tech) {
         throw new NotFoundError(`Không tìm thấy kỹ thuật viên với ID [${assignedTechnicianId}]`);
+      }
+      if (tech.role_code !== 'TECHNICIAN') {
+        throw new BadRequestError(`Người dùng được phân công phải có vai trò Kỹ thuật viên (TECHNICIAN). Người dùng [${tech.full_name || tech.username}] có vai trò [${tech.role_code}].`);
       }
     }
 
@@ -131,6 +134,31 @@ class ScheduleService {
       throw new NotFoundError(`Không tìm thấy lịch bảo trì với ID [${id}]`);
     }
 
+    // 1. Kiểm tra chuyển đổi trạng thái (State Transition Validation)
+    // Lifecycle: SCHEDULED -> COMPLETED, SCHEDULED -> CANCELLED
+    if (data.status && data.status !== schedule.status) {
+      if (schedule.status === 'COMPLETED') {
+        throw new BadRequestError(`Kế hoạch bảo trì đã hoàn tất (COMPLETED), không thể chuyển sang trạng thái [${data.status}]`);
+      }
+      if (schedule.status === 'CANCELLED') {
+        throw new BadRequestError(`Kế hoạch bảo trì đã bị hủy (CANCELLED), không thể chuyển sang trạng thái [${data.status}]`);
+      }
+      if (schedule.status === 'SCHEDULED' && !['COMPLETED', 'CANCELLED', 'SCHEDULED'].includes(data.status)) {
+        throw new BadRequestError(`Trạng thái chuyển đổi không hợp lệ: [${data.status}]. Chỉ chấp nhận COMPLETED hoặc CANCELLED.`);
+      }
+    }
+
+    // 2. Kiểm tra kỹ thuật viên (nếu có gán)
+    if (data.assignedTechnicianId !== undefined && data.assignedTechnicianId !== null && data.assignedTechnicianId !== '') {
+      const tech = await userRepository.findById(data.assignedTechnicianId);
+      if (!tech) {
+        throw new NotFoundError(`Không tìm thấy kỹ thuật viên với ID [${data.assignedTechnicianId}]`);
+      }
+      if (tech.role_code !== 'TECHNICIAN') {
+        throw new BadRequestError(`Người dùng được phân công phải có vai trò Kỹ thuật viên (TECHNICIAN). Người dùng [${tech.full_name || tech.username}] có vai trò [${tech.role_code}].`);
+      }
+    }
+
     let nextRunDate = schedule.next_run_date;
     const targetDate = data.scheduledDate || schedule.scheduled_date;
     const targetFreq = data.frequency || schedule.frequency;
@@ -165,6 +193,29 @@ class ScheduleService {
     const schedule = await scheduleRepository.findById(id);
     if (!schedule) {
       throw new NotFoundError(`Không tìm thấy lịch bảo trì với ID [${id}]`);
+    }
+
+    // 1. Phân quyền & Chống IDOR: TECHNICIAN chỉ được execute lịch phân công cho chính mình
+    if (currentUser) {
+      if (currentUser.role === 'TECHNICIAN') {
+        if (!schedule.assigned_technician_id || Number(schedule.assigned_technician_id) !== Number(currentUser.id)) {
+          throw new ForbiddenError('Bạn không có quyền thực hiện lịch bảo trì được phân công cho kỹ thuật viên khác');
+        }
+      } else if (currentUser.role === 'USER') {
+        throw new ForbiddenError('Bạn không có quyền thực hiện lịch bảo trì');
+      }
+    }
+
+    // 2. Kiểm tra trạng thái vòng đời (State Transition):
+    // Chỉ cho phép thực hiện lịch đang SCHEDULED. COMPLETED hoặc CANCELLED không được phép.
+    if (schedule.status === 'COMPLETED') {
+      throw new BadRequestError('Kế hoạch bảo trì này đã hoàn tất (COMPLETED), không thể thực hiện lại');
+    }
+    if (schedule.status === 'CANCELLED') {
+      throw new BadRequestError('Kế hoạch bảo trì này đã bị hủy (CANCELLED), không thể thực hiện');
+    }
+    if (schedule.status !== 'SCHEDULED') {
+      throw new BadRequestError(`Không thể thực hiện kế hoạch bảo trì ở trạng thái [${schedule.status}]. Chỉ có thể thực hiện khi ở trạng thái SCHEDULED.`);
     }
 
     const now = new Date();

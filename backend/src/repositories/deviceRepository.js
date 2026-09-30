@@ -283,6 +283,15 @@ class DeviceRepository {
   }
 
   /**
+   * Đếm số lượng kế hoạch bảo trì định kỳ liên quan đến thiết bị
+   */
+  async countMaintenanceSchedules(deviceId) {
+    const sql = `SELECT COUNT(*) AS total FROM maintenance_schedules WHERE device_id = ?`;
+    const [rows] = await pool.execute(sql, [deviceId]);
+    return rows[0]?.total || 0;
+  }
+
+  /**
    * Tạo mới thiết bị
    */
   async create({

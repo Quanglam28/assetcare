@@ -188,7 +188,15 @@ class DeviceService {
       throw new NotFoundError(`Không tìm thấy thiết bị với ID [${id}]`);
     }
 
-    // Đếm số lượng phiếu bảo trì liên quan
+    // 1. Kiểm tra kế hoạch bảo trì định kỳ liên quan (bảo vệ toàn vẹn dữ liệu)
+    const scheduleCount = await deviceRepository.countMaintenanceSchedules(id);
+    if (scheduleCount > 0) {
+      throw new BadRequestError(
+        `Không thể xóa thiết bị "${existing.name}" (${existing.code}) vì đang có ${scheduleCount} kế hoạch bảo trì định kỳ liên quan. Vui lòng hoàn thành hoặc hủy/xóa các lịch bảo trì trước khi xóa thiết bị.`
+      );
+    }
+
+    // 2. Đếm số lượng phiếu bảo trì liên quan
     const requestCount = await deviceRepository.countMaintenanceRequests(id);
 
     if (requestCount > 0) {
@@ -205,7 +213,7 @@ class DeviceService {
       };
     }
 
-    // Nếu chưa từng phát sinh sự cố bảo trì nào -> Cho phép xóa hoàn toàn
+    // 3. Nếu chưa từng phát sinh sự cố bảo trì nào và không có lịch bảo trì -> Cho phép xóa hoàn toàn
     await deviceRepository.delete(id);
     logger.info(`[Device Management] Đã xóa hoàn toàn thiết bị ID [${id}] (${existing.code}) khỏi hệ thống`);
 

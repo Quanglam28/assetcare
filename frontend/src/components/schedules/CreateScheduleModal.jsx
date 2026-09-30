@@ -7,6 +7,7 @@ import { Alert } from '../ui/Alert';
 import { Spinner } from '../ui/Spinner';
 import { Calendar, X, Laptop, Clock, Wrench, Search, Plus } from 'lucide-react';
 import { SCHEDULE_FREQUENCY_CONFIG } from '../../utils/constants';
+import { calculateNextRunDateClamped } from '../../utils/formatters';
 
 export const CreateScheduleModal = ({ isOpen, onClose, onSuccess, initialDevice = null }) => {
   const [formData, setFormData] = useState({
@@ -91,34 +92,9 @@ export const CreateScheduleModal = ({ isOpen, onClose, onSuccess, initialDevice 
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Tính ngày bảo trì tiếp theo xem trước
+  // Tính ngày bảo trì tiếp theo xem trước với cơ chế Month Clamping
   const calculatePreviewNextDate = () => {
-    const d = new Date(formData.scheduledDate || Date.now());
-    if (isNaN(d.getTime())) return 'N/A';
-
-    switch (formData.frequency) {
-      case 'MONTHLY':
-        d.setMonth(d.getMonth() + 1);
-        break;
-      case 'QUARTERLY':
-        d.setMonth(d.getMonth() + 3);
-        break;
-      case 'SEMI_ANNUALLY':
-      case 'SEMIANNUAL':
-        d.setMonth(d.getMonth() + 6);
-        break;
-      case 'ANNUALLY':
-      case 'YEARLY':
-        d.setFullYear(d.getFullYear() + 1);
-        break;
-      case 'CUSTOM':
-        d.setDate(d.getDate() + (parseInt(formData.customDays, 10) || 30));
-        break;
-      default:
-        d.setMonth(d.getMonth() + 3);
-        break;
-    }
-    return d.toLocaleDateString('vi-VN');
+    return calculateNextRunDateClamped(formData.scheduledDate, formData.frequency, formData.customDays);
   };
 
   const handleSubmit = async (e) => {

@@ -7,12 +7,14 @@ import { Alert } from '../../components/ui/Alert';
 import { Spinner } from '../../components/ui/Spinner';
 import { CreateScheduleModal } from '../../components/schedules/CreateScheduleModal';
 import { ExecuteScheduleModal } from '../../components/schedules/ExecuteScheduleModal';
+import { EditScheduleModal } from '../../components/schedules/EditScheduleModal';
 import { 
   Calendar, Clock, AlertTriangle, CheckCircle2, ShieldAlert, 
   Plus, Search, Filter, RotateCcw, Wrench, ChevronLeft, ChevronRight,
   Laptop, MapPin, User, ArrowRight, Trash2, Edit3
 } from 'lucide-react';
 import { SCHEDULE_FREQUENCY_CONFIG, SCHEDULE_ALERT_CONFIG } from '../../utils/constants';
+import { formatDate } from '../../utils/formatters';
 
 export const SchedulesPage = () => {
   const { user, isAdmin, isManager, isTechnician } = useAuth();
@@ -35,6 +37,7 @@ export const SchedulesPage = () => {
   // Modals
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [executeModalOpen, setExecuteModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
 
   const fetchStats = async () => {
@@ -370,7 +373,7 @@ export const SchedulesPage = () => {
                       <td className="py-3 px-4">
                         <div className="space-y-0.5">
                           <span className="font-mono font-bold text-slate-800 block">
-                            {new Date(item.scheduled_date).toLocaleDateString('vi-VN')}
+                            {formatDate(item.scheduled_date)}
                           </span>
                           {item.days_remaining !== undefined && item.alert_status !== 'COMPLETED' && (
                             <span className={`text-[10px] font-medium block ${
@@ -394,7 +397,7 @@ export const SchedulesPage = () => {
                       <td className="py-3 px-4">
                         <span className="font-mono text-slate-600 text-xs">
                           {item.next_run_date
-                            ? new Date(item.next_run_date).toLocaleDateString('vi-VN')
+                            ? formatDate(item.next_run_date)
                             : 'Chưa có'}
                         </span>
                       </td>
@@ -437,14 +440,24 @@ export const SchedulesPage = () => {
                           )}
 
                           {(isAdmin || isManager) && (
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(item)}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                              title="Xóa lịch"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => { setSelectedSchedule(item); setEditModalOpen(true); }}
+                                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Chỉnh sửa lịch bảo trì"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(item)}
+                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                title="Xóa lịch"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
                           )}
                         </div>
                       </td>
@@ -496,6 +509,17 @@ export const SchedulesPage = () => {
         onClose={() => setExecuteModalOpen(false)}
         schedule={selectedSchedule}
         onSuccess={() => { fetchStats(); fetchSchedules(); }}
+      />
+
+      <EditScheduleModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        schedule={selectedSchedule}
+        onSuccess={() => {
+          fetchStats();
+          fetchSchedules();
+          setSuccess('Cập nhật kế hoạch bảo trì thành công');
+        }}
       />
     </div>
   );
