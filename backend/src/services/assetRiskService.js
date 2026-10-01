@@ -70,16 +70,10 @@ class AssetRiskService {
     const riskAssessment = await ruleBasedRiskProvider.assessRisk(context);
 
     // 4. Sinh khuyến nghị hành động thông minh & chỉ số thay thế
-    const recommendation = recommendationService.generateRecommendation({
-      device,
-      healthScore: healthResult.healthScore,
-      riskScore: riskAssessment.riskScore,
-      riskLevel: riskAssessment.riskLevel,
-      riskFactors: riskAssessment.factors,
-      repairRatio,
-      maintenanceOverdueDays,
-      ageYears,
-    });
+    const recommendation = await recommendationService.getRecommendation(deviceId);
+    if (recommendation) {
+      recommendation.replacementIndicator = (recommendation.type === 'REPLACEMENT_REVIEW') ? 'CONSIDER_REPLACEMENT' : 'CONTINUE_MONITORING';
+    }
 
     // 5. Lưu vào MySQL (bảng asset_risk_assessments)
     const riskData = {
@@ -95,11 +89,11 @@ class AssetRiskService {
       criticalIncidentScore: riskAssessment.factors.criticalIncidentScore,
       failureTrendPercent: riskAssessment.trends.failureTrendPercent,
       repairCostTrendPercent: riskAssessment.trends.costTrendPercent,
-      recommendationAction: recommendation.action,
-      recommendationText: recommendation.text,
-      recommendationReasons: recommendation.reasons,
-      replacementIndicator: recommendation.replacementIndicator,
-      dataCompleteness: healthResult.dataCompleteness,
+      recommendationAction: recommendation?.action || 'MONITOR_ASSET',
+      recommendationText: recommendation?.reason || recommendation?.title || 'Theo dõi thiết bị',
+      recommendationReasons: recommendation?.sourceFactors || [],
+      replacementIndicator: recommendation?.replacementIndicator || 'CONTINUE_MONITORING',
+      dataCompleteness: Number(healthResult.completenessPercentage || 100),
       calculationVersion: config.VERSION,
     };
 
@@ -138,7 +132,7 @@ class AssetRiskService {
       explainableReasons: riskAssessment.explainableReasons,
       // Recommendations & Replacement
       recommendation,
-      replacementIndicator: recommendation.replacementIndicator,
+      replacementIndicator: recommendation?.replacementIndicator || 'CONTINUE_MONITORING',
       metrics: {
         failuresLast90d,
         failuresPrev90d,

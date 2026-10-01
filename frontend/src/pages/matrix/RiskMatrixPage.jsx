@@ -103,7 +103,7 @@ export const RiskMatrixPage = () => {
 
       {/* Filter Bar */}
       <Card className="p-4 border border-slate-200 shadow-xs">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
           <div>
             <label className="block text-slate-500 font-bold uppercase mb-1">Khoa / Đơn vị</label>
             <Select
@@ -145,7 +145,22 @@ export const RiskMatrixPage = () => {
             </Select>
           </div>
 
-          <div className="flex items-end">
+          <div>
+            <label className="block text-slate-500 font-bold uppercase mb-1">Mức độ ưu tiên (Priority)</label>
+            <Select
+              value={filters.priorityStatus}
+              onChange={(e) => handleFilterChange('priorityStatus', e.target.value)}
+            >
+              <option value="">Tất cả</option>
+              <option value="HIGH">HIGH</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="LOW">LOW</option>
+              <option value="CRITICAL">CRITICAL</option>
+              <option value="VERY_LOW">VERY_LOW</option>
+            </Select>
+          </div>
+
+          <div className="flex items-end sm:col-span-2 lg:col-span-1">
             <Button variant="primary" size="sm" icon={Filter} onClick={applyFilters} className="w-full">
               Lọc Dữ Liệu
             </Button>

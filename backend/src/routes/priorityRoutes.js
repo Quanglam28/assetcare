@@ -15,7 +15,7 @@ router.get('/assets/:id/priority/breakdown', (req, res, next) => priorityControl
 
 // 2. Phân tích ma trận rủi ro & Top ưu tiên
 router.get('/analytics/assets/top-priority', (req, res, next) => priorityController.getTopPriorityDevices(req, res, next));
-router.get('/analytics/risk-matrix', (req, res, next) => priorityController.getRiskMatrix(req, res, next));
+router.get('/analytics/risk-matrix', authorize('ADMIN', 'MANAGER', 'TECHNICIAN'), (req, res, next) => priorityController.getRiskMatrix(req, res, next));
 
 // 3. Admin Recalculate
 router.post('/admin/priority/recalculate', authorize('ADMIN', 'MANAGER'), (req, res, next) => priorityController.recalculateAll(req, res, next));
