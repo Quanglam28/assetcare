@@ -331,18 +331,26 @@ class ScheduleRepository {
   }
 
   /**
-   * Thực hiện bảo dưỡng định kỳ và tự động tính chu kỳ kế tiếp
+   * Thực hiện bảo dưỡng định kỳ và tự động tịnh tiến chu kỳ kế tiếp (Rolling Cycle)
    */
-  async executeMaintenance(id, { lastPerformedAt, nextRunDate, notes }) {
+  async executeMaintenance(id, { scheduledDate, nextRunDate, lastPerformedAt, notes }) {
     const sql = `
       UPDATE maintenance_schedules
-      SET status = 'COMPLETED',
-          last_performed_at = ?,
+      SET status = 'SCHEDULED',
+          scheduled_date = ?,
           next_run_date = ?,
+          last_performed_at = ?,
           notes = CONCAT(COALESCE(notes, ''), '\n[Bảo dưỡng hoàn tất ngày: ', DATE_FORMAT(?, '%d/%m/%Y'), ' - ', COALESCE(?, ''), ']')
       WHERE id = ?
     `;
-    await pool.execute(sql, [lastPerformedAt, nextRunDate, lastPerformedAt, notes || 'Đã kiểm tra bảo dưỡng', id]);
+    await pool.execute(sql, [
+      scheduledDate,
+      nextRunDate,
+      lastPerformedAt,
+      lastPerformedAt,
+      notes || 'Đã kiểm tra bảo dưỡng',
+      id,
+    ]);
   }
 
   /**

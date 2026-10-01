@@ -218,16 +218,36 @@ class ScheduleService {
       throw new BadRequestError(`Không thể thực hiện kế hoạch bảo trì ở trạng thái [${schedule.status}]. Chỉ có thể thực hiện khi ở trạng thái SCHEDULED.`);
     }
 
+    const toDateStr = (val) => {
+      if (!val) return '';
+      if (typeof val === 'string') {
+        const m = val.match(/^(\d{4}-\d{2}-\d{2})/);
+        return m ? m[1] : val.substring(0, 10);
+      }
+      if (val instanceof Date && !isNaN(val.getTime())) {
+        return val.toISOString().slice(0, 10);
+      }
+      return String(val).substring(0, 10);
+    };
+
+    const currentSchedStr = toDateStr(schedule.scheduled_date);
+    let newScheduledDate = toDateStr(schedule.next_run_date);
+
+    if (!newScheduledDate || newScheduledDate <= currentSchedStr) {
+      newScheduledDate = scheduleRepository.calculateNextRunDate(schedule.scheduled_date, schedule.frequency, schedule.custom_days);
+    }
+    const newNextRunDate = scheduleRepository.calculateNextRunDate(newScheduledDate, schedule.frequency, schedule.custom_days);
+
     const now = new Date();
-    const nextRunDate = scheduleRepository.calculateNextRunDate(now, schedule.frequency);
 
     await scheduleRepository.executeMaintenance(id, {
+      scheduledDate: newScheduledDate,
+      nextRunDate: newNextRunDate,
       lastPerformedAt: now,
-      nextRunDate,
-      notes: notes ? notes.trim() : `Bảo dưỡng hoàn thành bởi ${currentUser.fullName || currentUser.username} (Chi phí: ${Number(cost).toLocaleString('vi-VN')} đ)`,
+      notes: notes ? notes.trim() : `Bảo dưỡng hoàn thành bởi ${currentUser?.fullName || currentUser?.username || 'Kỹ thuật viên'} (Chi phí: ${Number(cost).toLocaleString('vi-VN')} đ)`,
     });
 
-    logger.info(`[Schedule] KTV [${currentUser.username}] đã thực hiện bảo dưỡng định kỳ ID [${id}], chu kỳ tiếp theo [${nextRunDate}]`);
+    logger.info(`[Schedule] KTV [${currentUser?.username || 'System'}] đã thực hiện bảo dưỡng định kỳ ID [${id}], chu kỳ mới [${newScheduledDate}], chu kỳ sau nữa [${newNextRunDate}]`);
     return scheduleRepository.findById(id);
   }
 
